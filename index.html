@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Clienti - Personal_G</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#f5f5f3; --surface:#ffffff; --surface-2:#fafaf9;
+    --text:#18181a; --text-secondary:#63625c; --text-muted:#8b8a83;
+    --border:#e4e3dd; --border-strong:#cfceC6;
+    --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --yellow:#eda100;
+    --magenta:#e87ba4; --green:#008300; --violet:#4a3aa7; --red:#e34948; --gray:#9a998f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); padding:24px;
+  }
+  .wrap{max-width:1180px; margin:0 auto;}
+  h1{font-size:22px; font-weight:500; margin:0 0 4px;}
+  .subtitle{color:var(--text-secondary); font-size:14px; margin:0 0 24px;}
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:24px;}
+  .kpi{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:16px;}
+  .kpi .label{font-size:13px; color:var(--text-secondary); margin-bottom:6px;}
+  .kpi .value{font-size:24px; font-weight:500;}
+  .kpi .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
+  .panel{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px;}
+  .panel h2{font-size:16px; font-weight:500; margin:0 0 4px;}
+  .panel .desc{font-size:12px; color:var(--text-muted); margin:0 0 12px;}
+  .charts-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(360px,1fr)); gap:16px; margin-bottom:16px;}
+  .chart-box{position:relative; width:100%; height:280px;}
+  .legend{display:flex; flex-wrap:wrap; gap:12px; margin-bottom:6px; font-size:12px; color:var(--text-secondary);}
+  .legend span.dot{width:10px; height:10px; border-radius:2px; display:inline-block; margin-right:4px;}
+  .legend-item{display:flex; align-items:center;}
+  .filters{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+  .filters select, .filters input{
+    height:34px; border-radius:8px; border:0.5px solid var(--border-strong);
+    background:var(--surface); color:var(--text); padding:0 10px; font-size:13px;
+  }
+  .filters input{width:200px;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th, td{padding:8px 10px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
+  th{color:var(--text-secondary); font-weight:500; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--surface);}
+  tbody tr:hover{background:var(--surface-2);}
+  .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:500;}
+  .b-attivo{background:#e1f5ee; color:#085041;}
+  .b-sospesa{background:#faeeda; color:#633806;}
+  .b-sparita{background:#fcebeb; color:#791f1f;}
+  .b-mainiziato{background:#f1efe8; color:#444441;}
+  .b-vuoto{background:#f1efe8; color:#888780;}
+  .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
+  .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+</style>
+</head>
+<body>
+<h2 class="sr-only">Dashboard interattiva dei clienti Personal_G con KPI, grafici su stato, incassi, venditori, trainer e nutrizionisti, e tabella clienti filtrabile.</h2>
+<div class="wrap">
+  <h1>Dashboard clienti - Personal_G</h1>
+  <p class="subtitle">52 clienti · dati aggiornati al 26 luglio 2026</p>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="panel">
+    <div class="charts-grid">
+      <div>
+        <h2>Stato clienti</h2>
+        <p class="desc">Distribuzione per stato del percorso</p>
+        <div id="legendStato" class="legend"></div>
+        <div class="chart-box"><canvas id="chartStato" role="img" aria-label="Grafico a ciambella della distribuzione clienti per stato">Distribuzione stato clienti</canvas></div>
+      </div>
+      <div>
+        <h2>Metodo di pagamento</h2>
+        <p class="desc">Distribuzione incassi per metodo</p>
+        <div id="legendPagamento" class="legend"></div>
+        <div class="chart-box"><canvas id="chartPagamento" role="img" aria-label="Grafico a ciambella dei metodi di pagamento">Distribuzione metodi di pagamento</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Incasso mensile (per data inizio percorso)</h2>
+    <p class="desc">Somma importi per mese di avvio</p>
+    <div class="chart-box" style="height:260px;"><canvas id="chartMensile" role="img" aria-label="Grafico a linee dell'incasso mensile">Incasso mensile</canvas></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="panel">
+      <h2>Incasso per venditore</h2>
+      <p class="desc">Totale importi generati</p>
+      <div class="chart-box" style="height:260px;"><canvas id="chartVenditore" role="img" aria-label="Grafico a barre orizzontali dell'incasso per venditore">Incasso per venditore</canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Clienti per trainer</h2>
+      <p class="desc">Numero di clienti assegnati</p>
+      <div class="chart-box" style="height:260px;"><canvas id="chartTrainer" role="img" aria-label="Grafico a barre orizzontali dei clienti per trainer">Clienti per trainer</canvas></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Clienti per nutrizionista</h2>
+    <p class="desc">Numero di clienti assegnati (esclusi non assegnati)</p>
+    <div class="chart-box" style="height:220px;"><canvas id="chartNutri" role="img" aria-label="Grafico a barre dei clienti per nutrizionista">Clienti per nutrizionista</canvas></div>
+  </div>
+
+  <div class="panel">
+    <h2>Elenco clienti</h2>
+    <div class="filters">
+      <input type="text" id="fSearch" placeholder="Cerca cliente...">
+      <select id="fStato"><option value="">Tutti gli stati</option></select>
+      <select id="fVenditore"><option value="">Tutti i venditori</option></select>
+      <select id="fTrainer"><option value="">Tutti i trainer</option></select>
+      <select id="fNutri"><option value="">Tutti i nutrizionisti</option></select>
+      <select id="fPagamento"><option value="">Tutti i pagamenti</option></select>
+    </div>
+    <div class="count-tag" id="countTag"></div>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th data-key="cliente">Cliente</th>
+            <th data-key="stato">Stato</th>
+            <th data-key="percorso">Percorso</th>
+            <th data-key="inizio">Inizio</th>
+            <th data-key="fine">Fine</th>
+            <th data-key="pagamento">Pagamento</th>
+            <th data-key="importo">Importo</th>
+            <th data-key="venditore">Venditore</th>
+            <th data-key="trainer">Trainer</th>
+            <th data-key="nutrizionista">Nutrizionista</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const raw = [
+["Giulia Sabbatini","SPARITA","12 MESI","12/12/2025","12/12/2026","PagoDIL",1850.92,"Personal_G","Fiorenzo","Nicole"],
+["Margareth Di Dio","IN PERCORSO","12 MESI","30/01/2026","30/01/2027","PagoDIL",1428.00,"Personal_G","Matteo","Alessia"],
+["Sabrina Rocca","IN PERCORSO","12 MESI","02/02/2026","02/02/2027","PagoDIL",1428.00,"Personal_G","Marco",""],
+["Simona Mugnaini","IN PERCORSO","12 MESI","04/02/2026","04/02/2027","PagoDIL",1428.00,"Salvatore","Fiorenzo","Nicole"],
+["Linda Dorigo","IN PERCORSO","12 MESI","06/02/2026","06/02/2027","PagoDIL",1428.00,"Salvatore","Marco","Nicole"],
+["Francesca Crescentini","SOSPESA","6 MESI","13/02/2026","13/02/2027","PayPal",822.00,"Martina","Gianmiki","Sofia"],
+["Irene Ferlisi","IN PERCORSO","12 MESI","13/02/2026","13/02/2027","PagoDIL",1428.00,"Personal_G","Marco","Matilde"],
+["Meri Gega","IN PERCORSO","6 MESI","16/02/2026","16/02/2027","Bonifico",822.00,"Personal_G","Marco","Alessia"],
+["Martina Stragapede","IN PERCORSO","12 MESI","16/02/2026","16/02/2027","PagoDIL",1428.00,"Personal_G","Matteo","Alessia"],
+["Stefania Perico","IN PERCORSO","6 MESI","21/02/2026","21/02/2027","PagoDIL",822.00,"Personal_G","Marco","Alessia"],
+["Valentina Allegri","IN PERCORSO","12 MESI","24/02/2026","24/02/2027","PagoDIL",1428.00,"Personal_G","Matteo","Alessia"],
+["Sabrina Sabatinelli","IN PERCORSO","12 MESI","26/02/2026","26/02/2027","PagoDIL",1428.00,"Personal_G","Gianmiki","Nicole"],
+["Chiara Crescimone","IN PERCORSO","6 MESI","27/02/2026","27/02/2027","PagoDIL",822.00,"Peppe","Matteo","Sofia"],
+["Natasha Vollero","IN PERCORSO","12 MESI","28/02/2026","28/02/2027","Scalapay",1850.00,"Peppe","Federica","Alessia"],
+["Grazia Vitillo","SOSPESA","12 MESI","02/03/2026","02/03/2027","PagoDIL",1428.00,"Personal_G","Matteo","Vanessa"],
+["Angela Anselmetti","IN PERCORSO","12 MESI","03/03/2026","03/03/2027","PagoDIL",1428.00,"Personal_G","Fiorenzo","Vanessa"],
+["Ilaria Pandolfi","IN PERCORSO","12 MESI","04/03/2026","04/03/2027","PagoDIL",1428.00,"Martina","Federica","Vanessa"],
+["Agnese Ciani","SOSPESA","4 MESI","06/03/2026","06/03/2027","Bonifico",680.00,"Salvatore","Federica","Nicole"],
+["Linda Meini","IN PERCORSO","12 MESI","09/03/2026","09/03/2027","PagoDIL",1428.00,"Personal_G","Fiorenzo","Alessia"],
+["Sofia Chiappetta","IN PERCORSO","12 MESI","23/03/2026","23/03/2027","PagoDIL",1428.00,"Personal_G","Gianmiki","Nicole"],
+["Irene Calonaci","IN PERCORSO","12 MESI","26/03/2026","26/03/2027","PagoDIL",1850.82,"Personal_G","Gianmiki",""],
+["Valeria Scalia","MAI INIZIATO","12 MESI","28/03/2026","28/03/2027","PagoDIL",1850.82,"Personal_G","",""],
+["Michela Faggion","IN PERCORSO","12 MESI","31/03/2026","31/03/2027","PagoDIL",1428.00,"Manuela","Gianmiki","Matilde"],
+["Maria Capri","IN PERCORSO","6 MESI","07/04/2026","07/04/2027","PagoDIL",822.00,"Selene","Marco","Alessia"],
+["Teresa Cappellini","IN PERCORSO","6 MESI","09/04/2026","09/04/2027","PayPal",822.00,"Martina","Marco","Alessia"],
+["Barbara Gervasi","IN PERCORSO","12 MESI","13/04/2026","13/04/2027","Scalapay",1428.00,"Martina","Federica","Matilde"],
+["Camilla Tabarrini","IN PERCORSO","6 MESI","13/04/2026","13/04/2027","PayPal",822.00,"Peppe","Gianmiki","Nicole"],
+["Mariangela D'Elia","IN PERCORSO","12 MESI","13/04/2026","13/04/2027","Scalapay",1428.00,"Gennaro","Matteo","Vanessa"],
+["Gabriella Rania","SOSPESA","4 MESI","14/04/2026","14/04/2027","PayPal",680.00,"Peppe","Matteo","Vanessa"],
+["Mariachiara Bonini","IN PERCORSO","12 MESI","21/04/2026","21/04/2027","PayPal",1428.00,"Peppe","Matteo","Vanessa"],
+["Noemi Braccini","IN PERCORSO","12 MESI","21/04/2026","21/04/2027","Scalapay",1428.00,"Salvatore","Gianmiki","Matilde"],
+["Patrizia Delgado Da Cruz","IN PERCORSO","12 MESI","22/04/2026","22/04/2027","Bonifico",1428.00,"Peppe","Fiorenzo","Alessia"],
+["Ramona Lenti","IN PERCORSO","12 MESI","02/05/2026","02/05/2027","Bonifico",1428.00,"Personal_G","Marco","Vanessa"],
+["Mariavittoria Nocco","IN PERCORSO","12 MESI","04/05/2026","04/05/2027","PayPal",1428.00,"Martina","Fiorenzo","Vanessa"],
+["Michela Reale","IN PERCORSO","6 MESI","05/05/2026","05/05/2027","Scalapay",822.00,"Peppe","Matteo","Matilde"],
+["Alessia Massicci","IN PERCORSO","6 MESI","10/05/2026","10/05/2027","PayPal",822.00,"Peppe","Fiorenzo","Matilde"],
+["Giuseppina Calise","IN PERCORSO","12 MESI","10/05/2026","10/05/2027","HeyLight",1428.00,"Personal_G","Marco","Matilde"],
+["Eleonora Menicucci","IN PERCORSO","12 MESI","14/05/2026","14/05/2027","HeyLight",1428.00,"Personal_G","Gianmiki","Matilde"],
+["Rebecca Boglione","IN PERCORSO","12 MESI","15/05/2026","15/05/2027","HeyLight",1428.00,"Personal_G","Matteo","Matilde"],
+["Grazia Occhiogrosso","IN PERCORSO","6 MESI","19/05/2026","19/05/2027","HeyLight",822.00,"Martina","Matteo","Matilde"],
+["Marina Parpinelli","IN PERCORSO","6 MESI","24/05/2026","24/05/2027","Scalapay",822.00,"Mara","Fiorenzo","Nicole"],
+["Mina Esposito","IN PERCORSO","4 MESI","03/06/2026","03/06/2027","HeyLight",680.00,"Personal_G","Matteo",""],
+["Giada Antonelli","IN PERCORSO","6 MESI","05/06/2026","05/06/2027","HeyLight",822.00,"Personal_G","Marco",""],
+["Giulia Brogi","IN PERCORSO","6 MESI + 6 GNOCCA","09/06/2026","09/06/2027","PayPal",1668.00,"Personal_G","Marco","Matilde"],
+["Tery Chiarugi","IN PERCORSO","6 MESI + 6 GNOCCA","09/06/2026","09/06/2027","HeyLight",1668.00,"Personal_G","Gianmiki","Alessia"],
+["Maria Cristina Bosco","IN PERCORSO","6 MESI + 6 GNOCCA","12/06/2026","12/06/2027","Scalapay",1668.00,"Peppe","Fiorenzo","Vanessa"],
+["Silvia Paci","IN PERCORSO","12 MESI","16/06/2026","16/06/2027","HeyLight",1428.00,"Personal_G","Personal_G",""],
+["Alice Risaliti","IN PERCORSO","12 MESI","23/06/2026","23/06/2027","Scalapay",1428.00,"Manuela","Fiorenzo",""],
+["Margherita Noviello","IN PERCORSO","6 MESI + 6 GNOCCA","15/07/2026","15/07/2027","Bonifico",1668.00,"Personal_G","Federica","Nicole"],
+["Giulia Molinari","IN PERCORSO","6 MESI + 6 GNOCCA","21/07/2026","21/07/2027","HeyLight",1668.00,"Personal_G","Federica","Matilde"],
+["Anna Contino","IN PERCORSO","12 MESI","22/07/2026","22/07/2027","Scalapay",1428.00,"Manuela","Federica",""],
+["Valentina Scaia","","6 MESI + 6 GNOCCA","24/07/2026","24/07/2027","HeyLight",1668.00,"Personal_G","",""]
+];
+
+const data = raw.map(r => ({
+  cliente:r[0], stato:r[1]||"Non specificato", percorso:r[2], inizio:r[3], fine:r[4],
+  pagamento:r[5], importo:r[6], venditore:r[7], trainer:r[8]||"Non assegnato", nutrizionista:r[9]||"Non assegnato"
+}));
+
+const fmtEUR = n => n.toLocaleString('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const COLORS = {blue:'#2a78d6',orange:'#eb6834',aqua:'#1baf7a',yellow:'#eda100',magenta:'#e87ba4',green:'#008300',violet:'#4a3aa7',red:'#e34948',gray:'#9a998f'};
+const palette = [COLORS.blue,COLORS.orange,COLORS.aqua,COLORS.yellow,COLORS.magenta,COLORS.violet,COLORS.red,COLORS.gray];
+
+function statoBadgeClass(s){
+  if(s==='IN PERCORSO') return 'b-attivo';
+  if(s==='SOSPESA') return 'b-sospesa';
+  if(s==='SPARITA') return 'b-sparita';
+  if(s==='MAI INIZIATO') return 'b-mainiziato';
+  return 'b-vuoto';
+}
+
+function buildKPIs(){
+  const totClienti = data.length;
+  const attivi = data.filter(d=>d.stato==='IN PERCORSO').length;
+  const totIncasso = data.reduce((s,d)=>s+d.importo,0);
+  const incassoAttivi = data.filter(d=>d.stato==='IN PERCORSO').reduce((s,d)=>s+d.importo,0);
+  const kpis = [
+    {label:'Clienti totali', value: totClienti, sub: `${attivi} in percorso`},
+    {label:'Incasso totale', value: fmtEUR(totIncasso), sub: 'somma di tutti gli importi'},
+    {label:'Incasso clienti attivi', value: fmtEUR(incassoAttivi), sub: `${((incassoAttivi/totIncasso)*100).toFixed(0)}% del totale`},
+    {label:'Importo medio', value: fmtEUR(totIncasso/totClienti), sub: 'per cliente'},
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map(k=>`
+    <div class="kpi">
+      <div class="label">${k.label}</div>
+      <div class="value">${k.value}</div>
+      <div class="sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+function countBy(arr, key){
+  const m = {};
+  arr.forEach(d=>{ m[d[key]] = (m[d[key]]||0)+1; });
+  return m;
+}
+function sumBy(arr, key, valKey){
+  const m = {};
+  arr.forEach(d=>{ m[d[key]] = (m[d[key]]||0)+d[valKey]; });
+  return m;
+}
+function renderLegend(el, labels, values, colors, isCurrency){
+  el.innerHTML = labels.map((l,i)=>`
+    <span class="legend-item"><span class="dot" style="background:${colors[i]}"></span>${l}: ${isCurrency? fmtEUR(values[i]) : values[i]}</span>
+  `).join('');
+}
+
+function buildStatoChart(){
+  const m = countBy(data,'stato');
+  const labels = Object.keys(m);
+  const values = Object.values(m);
+  renderLegend(document.getElementById('legendStato'), labels, values, palette, false);
+  new Chart(document.getElementById('chartStato'), {
+    type:'doughnut',
+    data:{labels, datasets:[{data:values, backgroundColor:palette.slice(0,labels.length), borderWidth:2, borderColor:'#ffffff'}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}
+  });
+}
+
+function buildPagamentoChart(){
+  const m = sumBy(data,'pagamento','importo');
+  const labels = Object.keys(m);
+  const values = Object.values(m).map(v=>Math.round(v));
+  renderLegend(document.getElementById('legendPagamento'), labels, values, palette, true);
+  new Chart(document.getElementById('chartPagamento'), {
+    type:'doughnut',
+    data:{labels, datasets:[{data:values, backgroundColor:palette.slice(0,labels.length), borderWidth:2, borderColor:'#ffffff'}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}
+  });
+}
+
+function parseDate(s){
+  const [d,m,y] = s.split('/');
+  return new Date(+y, +m-1, +d);
+}
+function buildMensileChart(){
+  const m = {};
+  data.forEach(d=>{
+    const dt = parseDate(d.inizio);
+    const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+    m[key] = (m[key]||0) + d.importo;
+  });
+  const labels = Object.keys(m).sort();
+  const values = labels.map(l=>Math.round(m[l]));
+  new Chart(document.getElementById('chartMensile'), {
+    type:'line',
+    data:{labels, datasets:[{label:'Incasso', data:values, borderColor:COLORS.blue, backgroundColor:'rgba(42,120,214,0.1)', fill:true, tension:0.25, borderWidth:2, pointRadius:3, pointBackgroundColor:COLORS.blue}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtEUR(c.parsed.y)}}},
+      scales:{y:{ticks:{callback:v=>fmtEUR(v)}, grid:{color:'#e4e3dd'}}, x:{ticks:{autoSkip:false, maxRotation:45}, grid:{display:false}}}
+    }
+  });
+}
+
+function buildVenditoreChart(){
+  const m = sumBy(data,'venditore','importo');
+  const entries = Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  const labels = entries.map(e=>e[0]);
+  const values = entries.map(e=>Math.round(e[1]));
+  new Chart(document.getElementById('chartVenditore'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Incasso', data:values, backgroundColor:COLORS.aqua, borderRadius:4, maxBarThickness:24}]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtEUR(c.parsed.x)}}},
+      scales:{x:{ticks:{callback:v=>fmtEUR(v)}, grid:{color:'#e4e3dd'}}, y:{grid:{display:false}}}
+    }
+  });
+}
+
+function buildTrainerChart(){
+  const m = countBy(data,'trainer');
+  const entries = Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  const labels = entries.map(e=>e[0]);
+  const values = entries.map(e=>e[1]);
+  new Chart(document.getElementById('chartTrainer'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Clienti', data:values, backgroundColor:COLORS.violet, borderRadius:4, maxBarThickness:24}]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{stepSize:1}, grid:{color:'#e4e3dd'}}, y:{grid:{display:false}}}
+    }
+  });
+}
+
+function buildNutriChart(){
+  const filtered = data.filter(d=>d.nutrizionista!=='Non assegnato');
+  const m = countBy(filtered,'nutrizionista');
+  const entries = Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  const labels = entries.map(e=>e[0]);
+  const values = entries.map(e=>e[1]);
+  new Chart(document.getElementById('chartNutri'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Clienti', data:values, backgroundColor:COLORS.magenta, borderRadius:4, maxBarThickness:32}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{ticks:{stepSize:1}, grid:{color:'#e4e3dd'}}, x:{grid:{display:false}}}
+    }
+  });
+}
+
+function populateSelect(id, key){
+  const sel = document.getElementById(id);
+  const vals = [...new Set(data.map(d=>d[key]))].sort();
+  vals.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
+
+let sortState = {key:'inizio', dir:1};
+
+function renderTable(){
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  const fStato = document.getElementById('fStato').value;
+  const fVenditore = document.getElementById('fVenditore').value;
+  const fTrainer = document.getElementById('fTrainer').value;
+  const fNutri = document.getElementById('fNutri').value;
+  const fPagamento = document.getElementById('fPagamento').value;
+
+  let rows = data.filter(d=>{
+    if(search && !d.cliente.toLowerCase().includes(search)) return false;
+    if(fStato && d.stato!==fStato) return false;
+    if(fVenditore && d.venditore!==fVenditore) return false;
+    if(fTrainer && d.trainer!==fTrainer) return false;
+    if(fNutri && d.nutrizionista!==fNutri) return false;
+    if(fPagamento && d.pagamento!==fPagamento) return false;
+    return true;
+  });
+
+  rows.sort((a,b)=>{
+    let va = a[sortState.key], vb = b[sortState.key];
+    if(sortState.key==='inizio' || sortState.key==='fine'){
+      va = parseDate(va); vb = parseDate(vb);
+    }
+    if(va<vb) return -1*sortState.dir;
+    if(va>vb) return 1*sortState.dir;
+    return 0;
+  });
+
+  document.getElementById('countTag').textContent = `${rows.length} clienti su ${data.length}`;
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map(d=>`
+    <tr>
+      <td>${d.cliente}</td>
+      <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
+      <td>${d.percorso}</td>
+      <td>${d.inizio}</td>
+      <td>${d.fine}</td>
+      <td>${d.pagamento}</td>
+      <td>${fmtEUR(d.importo)}</td>
+      <td>${d.venditore}</td>
+      <td>${d.trainer}</td>
+      <td>${d.nutrizionista}</td>
+    </tr>
+  `).join('');
+}
+
+document.querySelectorAll('#dataTable th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(sortState.key===key) sortState.dir *= -1;
+    else { sortState.key = key; sortState.dir = 1; }
+    renderTable();
+  });
+});
+
+['fSearch','fStato','fVenditore','fTrainer','fNutri','fPagamento'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderTable);
+});
+
+buildKPIs();
+buildStatoChart();
+buildPagamentoChart();
+buildMensileChart();
+buildVenditoreChart();
+buildTrainerChart();
+buildNutriChart();
+populateSelect('fStato','stato');
+populateSelect('fVenditore','venditore');
+populateSelect('fTrainer','trainer');
+populateSelect('fNutri','nutrizionista');
+populateSelect('fPagamento','pagamento');
+renderTable();
+</script>
+</body>
+</html>
