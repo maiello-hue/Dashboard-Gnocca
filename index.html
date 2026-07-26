@@ -78,17 +78,13 @@
   .b-perc-12{background:#eeedfe; color:#3c3489;}
   .b-perc-6{background:#cecbf6; color:#26215c;}
   .b-perc-altro{background:#f1efe8; color:#5f5e5a;}
-  .b-pag-pagodil{background:#faeeda; color:#633806;}
-  .b-pag-scalapay{background:#eeedfe; color:#3c3489;}
-  .b-pag-bonifico{background:#e6f1fb; color:#0c447c;}
-  .b-pag-qomodo{background:#b5d4f4; color:#042c53;}
-  .b-pag-paypal{background:#b5d4f4; color:#042c53;}
-  .b-pag-heylight{background:#fcebeb; color:#791f1f;}
-  .b-pag-altro{background:#f1efe8; color:#5f5e5a;}
   .b-situ-attiva{background:#eaf3de; color:#27500a;}
   .b-situ-poco{background:#faeeda; color:#633806;}
   .b-situ-non{background:#fcebeb; color:#791f1f;}
   .b-situ-altro{background:#f1efe8; color:#5f5e5a;}
+  .b-vend-personalg{background:#2c2c2a; color:#ffffff;}
+  .b-vend-salvatore{background:#173404; color:#ffffff;}
+  .b-vend-peppe{background:#e6f1fb; color:#0c447c;}
   .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
@@ -249,22 +245,19 @@ function percorsoBadgeClass(p){
   if(up.includes('6 MESI')) return 'b-perc-6';
   return 'b-perc-altro';
 }
-function pagamentoBadgeClass(p){
-  const up = (p||'').toUpperCase();
-  if(up==='PAGODIL') return 'b-pag-pagodil';
-  if(up==='SCALAPAY') return 'b-pag-scalapay';
-  if(up==='BONIFICO') return 'b-pag-bonifico';
-  if(up==='QOMODO') return 'b-pag-qomodo';
-  if(up==='PAYPAL') return 'b-pag-paypal';
-  if(up==='HEYLIGHT') return 'b-pag-heylight';
-  return 'b-pag-altro';
-}
 function situazioneBadgeClass(s){
   const up = (s||'').toUpperCase();
   if(up==='ATTIVA') return 'b-situ-attiva';
   if(up==='POCO ATTIVA') return 'b-situ-poco';
   if(up==='NON ATTIVA') return 'b-situ-non';
   return 'b-situ-altro';
+}
+function venditoreHtml(v){
+  let cls = null;
+  if(v==='Personal_G') cls = 'b-vend-personalg';
+  else if(v==='Salvatore') cls = 'b-vend-salvatore';
+  else if(v==='Peppe') cls = 'b-vend-peppe';
+  return cls ? `<span class="badge ${cls}">${v}</span>` : v;
 }
 let chartInstances = {};
 function makeChart(id, config){
@@ -429,15 +422,15 @@ function renderGnoccaClienti(){
         <td><span class="badge ${situazioneBadgeClass(d.situazione)}">${d.situazione}</span></td>
         <td>${d.nutrizione}</td>
         <td>${d.pt_extra}</td>
-        <td>${d.venditore}</td>
+        <td>${venditoreHtml(d.venditore)}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
         <td colspan="8">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
             <span><i class="fa-solid fa-phone"></i>${d.telefono || 'Telefono non disponibile'}</span>
-            <span><i class="fa-solid fa-credit-card"></i><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></span>
-            <span><i class="fa-solid fa-euro-sign"></i>${fmtEUR(d.importo)}</span>
+            <span><i class="fa-solid fa-credit-card"></i>${d.pagamento}</span>
+            <span><i class="fa-solid fa-coins"></i>${fmtEUR(d.importo)}</span>
           </div>
         </td>
       </tr>`).join('');
@@ -729,9 +722,9 @@ function renderNoTutorClienti(){
         <td>${d.percorso}</td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
-        <td><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></td>
+        <td>${d.pagamento}</td>
         <td>${fmtEUR(d.importo)}</td>
-        <td>${d.venditore}</td>
+        <td>${venditoreHtml(d.venditore)}</td>
         <td>${d.trainer}</td>
         <td>${d.nutrizionista}</td>
       </tr>`).join('');
@@ -876,7 +869,7 @@ function renderDisattivateClienti(){
         <td>${d.percorso}</td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
-        <td>${d.venditore}</td>
+        <td>${venditoreHtml(d.venditore)}</td>
         <td class="note-cell">${d.note}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
@@ -884,8 +877,8 @@ function renderDisattivateClienti(){
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
             <span><i class="fa-solid fa-phone"></i>${d.telefono || 'Telefono non disponibile'}</span>
-            <span><i class="fa-solid fa-credit-card"></i><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></span>
-            <span><i class="fa-solid fa-euro-sign"></i>${fmtEUR(d.importo)}</span>
+            <span><i class="fa-solid fa-credit-card"></i>${d.pagamento}</span>
+            <span><i class="fa-solid fa-coins"></i>${fmtEUR(d.importo)}</span>
           </div>
         </td>
       </tr>`).join('');
