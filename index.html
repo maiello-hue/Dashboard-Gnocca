@@ -74,6 +74,7 @@
   .b-sparita{background:#faeeda; color:#633806;}
   .b-mainiziato{background:#f1efe8; color:#444441;}
   .b-abbandono{background:#fcebeb; color:#791f1f;}
+  .b-non-rinnovo{background:#efe9fb; color:#4a3aa7;}
   .b-vuoto{background:#f1efe8; color:#888780;}
   .b-perc-12{background:#eeedfe; color:#3c3489;}
   .b-perc-6{background:#cecbf6; color:#26215c;}
@@ -315,8 +316,8 @@ Object.keys(CLIENTI_COLLECTIONS).forEach(key=>{
   });
 });
 
-const PERCORSO_OPTIONS = ['4 MESI','6 MESI','6 MESI + 6 GNOCCA','8 mesi','12 MESI','GNOCCA 4 LIFE','REFERRAL','Recupero'];
-const VENDITORE_OPTIONS = ['Duccio','Elisa','Gennaro','Giulia','Manuela','Mara','Margherita','Martina','Non specificato','Peppe','Personal_G','Sabrina','Salvatore','Selene'];
+const PERCORSO_OPTIONS = ['12 MESI','6 MESI','GNOCCA 4 LIFE'];
+const VENDITORE_OPTIONS = ['Personal_G','Salvatore','Peppe'];
 const NUTRI_OPTIONS = ['Non assegnato','Alessia','Matilde','Nicole','Sofia','Vanessa'];
 const PT_EXTRA_OPTIONS = ['Nessuno','Federica','Fiorenzo','Gianmiki','Marco','Matteo','Personal_G'];
 const TRAINER_OPTIONS = ['Non assegnato','Federica','Fiorenzo','Gianmiki','Marco','Matteo','Personal_G'];
@@ -324,7 +325,7 @@ const TRAINER_OPTIONS = ['Non assegnato','Federica','Fiorenzo','Gianmiki','Marco
 const FIELD_CONFIGS = {
   gnocca: [
     {key:'cliente', label:'Cliente', type:'text', required:true},
-    {key:'stato', label:'Stato', type:'select', options:['IN PERCORSO','SOSPESA','SPARITA','MAI INIZIATO','ABBANDONO']},
+    {key:'stato', label:'Stato', type:'select', options:['IN PERCORSO','SOSPESA','SPARITA','MAI INIZIATO','ABBANDONO','NON RINNOVO']},
     {key:'email', label:'Email', type:'text'},
     {key:'telefono', label:'Telefono', type:'text'},
     {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true},
@@ -512,6 +513,7 @@ function statoBadgeClass(s){
   if(s==='SPARITA') return 'b-sparita';
   if(s==='MAI INIZIATO') return 'b-mainiziato';
   if(s==='ABBANDONO') return 'b-abbandono';
+  if(s==='NON RINNOVO') return 'b-non-rinnovo';
   return 'b-vuoto';
 }
 function percorsoBadgeClass(p){
