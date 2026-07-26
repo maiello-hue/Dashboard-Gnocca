@@ -1133,6 +1133,7 @@ function renderDisattivateClienti(){
         <table id="d-table">
           <thead><tr>
             <th data-key="cliente">Cliente</th>
+            <th data-key="stato">Stato</th>
             <th data-key="percorso">Percorso</th>
             <th data-key="inizio">Inizio</th>
             <th data-key="fine">Fine</th>
@@ -1185,14 +1186,15 @@ function renderDisattivateClienti(){
     document.getElementById('d-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
         <td>${d.cliente}</td>
-        <td>${d.percorso}</td>
+        <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
+        <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
         <td>${venditoreHtml(d.venditore)}</td>
         <td class="note-cell">${d.note}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
-        <td colspan="6">
+        <td colspan="7">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
             <span><i class="fa-solid fa-phone"></i>${d.telefono || 'Telefono non disponibile'}</span>
