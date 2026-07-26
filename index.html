@@ -770,13 +770,11 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
 // ---------------- RIEPILOGO GLOBALE ----------------
 function renderRiepilogoGlobale(){
   const g = RAW.gnocca;
-  const d = RAW.disattivate;
   const today = new Date(); today.setHours(0,0,0,0);
 
   const totaleClienti = g.length;
   const inPercorso = g.filter(x=>x.stato==='IN PERCORSO').length;
   const congelate = g.filter(x=>x.stato==='SOSPESA').length;
-  const nonRinnovate = d.length;
   const abbandonate = g.filter(x=>x.stato==='ABBANDONO').length;
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
 
@@ -793,15 +791,14 @@ function renderRiepilogoGlobale(){
   }).length;
 
   const cards = [
-    {label:'Clienti totali', value: totaleClienti, sub: 'clienti nella scheda Gnocca'},
-    {label:'In percorso', value: inPercorso, sub: 'stato IN PERCORSO'},
-    {label:'Congelate', value: congelate, sub: 'stato SOSPESA'},
-    {label:'Non rinnovate', value: nonRinnovate, sub: 'scheda Disattivate'},
-    {label:'Abbandonate', value: abbandonate, sub: 'stato ABBANDONO'},
-    {label:'Sparite', value: sparite, sub: 'stato SPARITA'},
-    {label:'In scadenza 30gg', value: inScadenza.length, sub: `${daContattare} da contattare`},
+    {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a'},
+    {label:'In percorso', value: inPercorso, bg:'#eaf3de', color:'#27500a'},
+    {label:'Congelate', value: congelate, bg:'#e6f1fb', color:'#0c447c'},
+    {label:'Abbandonate', value: abbandonate, bg:'#fcebeb', color:'#791f1f'},
+    {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806'},
+    {label:'In scadenza 30gg', value: inScadenza.length, bg:'#ffffff', color:'#18181a'},
   ];
-  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join('');
+  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
 }
 contattiListeners.push(()=>renderRiepilogoGlobale());
 renderRiepilogoGlobale();
