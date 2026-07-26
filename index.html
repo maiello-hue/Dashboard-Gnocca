@@ -76,9 +76,10 @@
   .b-abbandono{background:#fcebeb; color:#791f1f;}
   .b-non-rinnovo{background:#efe9fb; color:#4a3aa7;}
   .b-vuoto{background:#f1efe8; color:#888780;}
-  .b-perc-12{background:#eeedfe; color:#3c3489;}
-  .b-perc-6{background:#cecbf6; color:#26215c;}
+  .b-perc-12{background:#fbe4ec; color:#9c1f56;}
+  .b-perc-6{background:#c2185b; color:#ffffff;}
   .b-perc-altro{background:#f1efe8; color:#5f5e5a;}
+  .b-perc-referral{background:#eaf3de; color:#27500a;}
   .b-situ-attiva{background:#eaf3de; color:#27500a;}
   .b-situ-poco{background:#faeeda; color:#633806;}
   .b-situ-non{background:#fcebeb; color:#791f1f;}
@@ -520,6 +521,7 @@ function percorsoBadgeClass(p){
   const up = (p||'').toUpperCase();
   if(up.includes('12 MESI')) return 'b-perc-12';
   if(up.includes('6 MESI')) return 'b-perc-6';
+  if(up.includes('REFERRAL')) return 'b-perc-referral';
   return 'b-perc-altro';
 }
 function situazioneBadgeClass(s){
