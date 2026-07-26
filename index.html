@@ -78,7 +78,11 @@
   .gg-ok{color:var(--text-muted);}
   .gg-soon{color:#8a5a00;}
   .gg-urgent{color:#a32d2d;}
-  .cr-select{height:32px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); font-size:12px; padding:0 8px;}
+  .cr-select{height:32px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); font-size:12px; padding:0 8px; font-weight:500;}
+  .cr-select.st-da-contattare{background:#faeeda; color:#633806; border-color:#f0997b;}
+  .cr-select.st-contattato{background:#e6f1fb; color:#0c447c; border-color:#85b7eb;}
+  .cr-select.st-rinnovato{background:#eaf3de; color:#3b6d11; border-color:#97c459;}
+  .cr-select.st-non-rinnova{background:#fcebeb; color:#791f1f; border-color:#f09595;}
   .cr-note{height:32px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); font-size:12px; padding:0 8px; width:200px;}
 </style>
 </head>
@@ -351,6 +355,13 @@ function renderGnoccaTab(){
 
 function contattiId(d){ return slug(d.cliente + '-' + d.inizio); }
 
+function contattoSelectClass(v){
+  if(v==='Contattato') return 'st-contattato';
+  if(v==='Rinnovato') return 'st-rinnovato';
+  if(v==='Non rinnova') return 'st-non-rinnova';
+  return 'st-da-contattare';
+}
+
 function contattiGgInfo(fineDate, today){
   const diffDays = Math.round((fineDate - today)/86400000);
   let cls = 'gg-ok';
@@ -386,13 +397,14 @@ function renderContattiList(data){
             <span class="cr-data">${d.fine}</span>
             <span class="cr-gg ${cls}">${label}</span>
           </div>
-          <select class="cr-select" data-id="${id}">${optionsHtml}</select>
+          <select class="cr-select ${contattoSelectClass(statoContatto)}" data-id="${id}">${optionsHtml}</select>
           <input type="text" class="cr-note" data-id="${id}" placeholder="nota..." value="${nota}">
         </div>`;
     }).join('');
 
     container.querySelectorAll('.cr-select').forEach(sel=>{
       sel.addEventListener('change', ()=>{
+        sel.className = `cr-select ${contattoSelectClass(sel.value)}`;
         setDoc(doc(db, CONTATTI_COLLECTION, sel.dataset.id), {stato_contatto: sel.value}, {merge:true});
       });
     });
@@ -431,7 +443,10 @@ function renderContattiList(data){
     if(!row) return;
     const sel = row.querySelector('.cr-select');
     const inp = row.querySelector('.cr-note');
-    if(sel && document.activeElement !== sel && docData.stato_contatto) sel.value = docData.stato_contatto;
+    if(sel && document.activeElement !== sel && docData.stato_contatto){
+      sel.value = docData.stato_contatto;
+      sel.className = `cr-select ${contattoSelectClass(docData.stato_contatto)}`;
+    }
     if(inp && document.activeElement !== inp && docData.nota !== undefined) inp.value = docData.nota;
   });
 
@@ -758,7 +773,7 @@ function renderRiepilogoGlobale(){
   const d = RAW.disattivate;
   const today = new Date(); today.setHours(0,0,0,0);
 
-  const totaleClienti = g.length + d.length;
+  const totaleClienti = g.length;
   const inPercorso = g.filter(x=>x.stato==='IN PERCORSO').length;
   const congelate = g.filter(x=>x.stato==='SOSPESA').length;
   const nonRinnovate = d.length;
@@ -778,7 +793,7 @@ function renderRiepilogoGlobale(){
   }).length;
 
   const cards = [
-    {label:'Clienti totali', value: totaleClienti, sub: `${g.length} gnocca &middot; ${d.length} disattivate`},
+    {label:'Clienti totali', value: totaleClienti, sub: 'clienti nella scheda Gnocca'},
     {label:'In percorso', value: inPercorso, sub: 'stato IN PERCORSO'},
     {label:'Congelate', value: congelate, sub: 'stato SOSPESA'},
     {label:'Non rinnovate', value: nonRinnovate, sub: 'scheda Disattivate'},
