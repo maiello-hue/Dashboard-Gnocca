@@ -83,7 +83,14 @@
   .b-situ-non{background:#fcebeb; color:#791f1f;}
   .b-situ-altro{background:#f1efe8; color:#5f5e5a;}
   .b-vend-salvatore{background:#d5f2d8; color:#1e6b2e;}
+  .b-vend-personalg{background:#1c1c1a; color:#ffffff;}
+  .b-vend-peppe{background:#e6f1fb; color:#0c447c;}
   .b-vend-altro{background:#e9e9e9; color:#555555;}
+  .b-nutri-nicole{background:#fdf1d6; color:#8a5a00;}
+  .b-nutri-alessia{background:#fcebeb; color:#791f1f;}
+  .b-nutri-vanessa{background:#fbe4ec; color:#9c1f56;}
+  .b-nutri-sofia{background:#eaf3de; color:#27500a;}
+  .b-nutri-matilde{background:#e6f1fb; color:#0c447c;}
   .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
@@ -455,7 +462,10 @@ function situazioneBadgeClass(s){
 }
 function venditoreHtml(v){
   if(!v) return v;
-  const cls = (v==='Salvatore') ? 'b-vend-salvatore' : 'b-vend-altro';
+  let cls = 'b-vend-altro';
+  if(v==='Salvatore') cls = 'b-vend-salvatore';
+  else if(v==='Personal_G') cls = 'b-vend-personalg';
+  else if(v==='Peppe') cls = 'b-vend-peppe';
   return `<span class="badge ${cls}">${v}</span>`;
 }
 let chartInstances = {};
@@ -468,7 +478,18 @@ function populateSelect(id, data, key){
   const vals = [...new Set(data.map(d=>d[key]))].filter(v=>v).sort();
   vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=dispVal(v); sel.appendChild(o); });
 }
-function dispVal(v){ return v==='Non assegnato' ? '-' : v; }
+function dispVal(v){ return (v==='Non assegnato' || v==='Nessuno') ? '-' : v; }
+function nutriHtml(v){
+  const disp = dispVal(v);
+  if(disp==='-') return disp;
+  let cls = null;
+  if(v==='Nicole') cls = 'b-nutri-nicole';
+  else if(v==='Alessia') cls = 'b-nutri-alessia';
+  else if(v==='Vanessa') cls = 'b-nutri-vanessa';
+  else if(v==='Sofia') cls = 'b-nutri-sofia';
+  else if(v==='Matilde') cls = 'b-nutri-matilde';
+  return cls ? `<span class="badge ${cls}">${disp}</span>` : disp;
+}
 
 // ================= GNOCCA: ANALISI DATI =================
 function renderGnoccaAnalisi(){
@@ -626,8 +647,8 @@ function renderGnoccaClienti(){
         <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
         <td>${d.inizio}</td>
         <td><span class="badge ${situazioneBadgeClass(d.situazione)}">${d.situazione}</span></td>
-        <td>${d.nutrizione}</td>
-        <td>${d.pt_extra}</td>
+        <td>${nutriHtml(d.nutrizione)}</td>
+        <td>${dispVal(d.pt_extra)}</td>
         <td>${venditoreHtml(d.venditore)}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
@@ -945,7 +966,7 @@ function renderNoTutorClienti(){
         <td>${fmtEUR(d.importo)}</td>
         <td>${venditoreHtml(d.venditore)}</td>
         <td>${dispVal(d.trainer)}</td>
-        <td>${dispVal(d.nutrizionista)}</td>
+        <td>${nutriHtml(d.nutrizionista)}</td>
         <td class="azioni-cell">
           <button type="button" class="btn-icon btn-edit-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-pen"></i></button>
           <button type="button" class="btn-icon btn-delete-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-trash"></i></button>
