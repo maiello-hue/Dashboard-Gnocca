@@ -26,6 +26,7 @@
   .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
   .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px;}
   .side-btn i{width:18px; text-align:center; font-size:15px; color:var(--text-muted);}
+  .side-count{margin-left:auto; font-size:11px; color:var(--text-muted);}
   .side-btn:hover{background:var(--surface-2); color:var(--text);}
   .side-btn:hover i{color:var(--text);}
   .side-btn.active{background:var(--surface-2); color:var(--text); font-weight:500;}
@@ -151,20 +152,14 @@
   <div class="app-layout">
     <div class="sidebar">
       <div class="side-label">Navigazione</div>
-      <button class="side-btn active" data-section="dashboard"><i class="fa-solid fa-house"></i>Dashboard</button>
-      <button class="side-btn" data-section="clienti"><i class="fa-solid fa-users"></i>Clienti</button>
-      <button class="side-btn" data-section="analisi"><i class="fa-solid fa-chart-column"></i>Analisi Dati</button>
-      <button class="side-btn" data-section="scadenze"><i class="fa-solid fa-clock"></i>Gestione Scadenze</button>
+      <button class="side-btn active" data-nav="dashboard"><i class="fa-solid fa-house"></i>Dashboard</button>
+      <button class="side-btn" data-nav="analisi"><i class="fa-solid fa-chart-column"></i>Analisi Dati</button>
+      <button class="side-btn" data-nav="scadenze"><i class="fa-solid fa-clock"></i>Gestione Scadenze</button>
       <div class="side-divider"></div>
-      <div class="side-label">In arrivo</div>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-list-check"></i>Task</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-rocket"></i>Allenate Oggi</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-comment-dots"></i>Feedback Allenamenti</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-camera"></i>Revisione Foto</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-star"></i>Voto Foto Team</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-store"></i>Venditori</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-wallet"></i>Compensi</button>
-      <button class="side-btn disabled" disabled><i class="fa-solid fa-clipboard-check"></i>Valutazione Staff</button>
+      <div class="side-label">Clienti</div>
+      <button class="side-btn" data-nav="clienti:gnocca"><i class="fa-solid fa-users"></i>Gnocca <span class="side-count" data-dataset="gnocca">(196)</span></button>
+      <button class="side-btn" data-nav="clienti:no_tutor"><i class="fa-solid fa-user-group"></i>No Tutor <span class="side-count" data-dataset="no_tutor">(52)</span></button>
+      <button class="side-btn" data-nav="clienti:disattivate"><i class="fa-solid fa-user-slash"></i>Disattivate <span class="side-count" data-dataset="disattivate">(39)</span></button>
     </div>
 
     <div class="main-content">
@@ -173,11 +168,6 @@
       </div>
 
       <div id="section-clienti" class="app-section">
-        <div class="pill-tabs">
-          <button class="pill-btn active" data-dataset="gnocca">Gnocca (196)</button>
-          <button class="pill-btn" data-dataset="no_tutor">No Tutor (52)</button>
-          <button class="pill-btn" data-dataset="disattivate">Disattivate (39)</button>
-        </div>
         <div id="clienti-gnocca" class="dataset-panel active"></div>
         <div id="clienti-no_tutor" class="dataset-panel"></div>
         <div id="clienti-disattivate" class="dataset-panel"></div>
@@ -283,6 +273,9 @@ function updatePillCounts(){
   document.querySelectorAll('.pill-btn[data-dataset="gnocca"]').forEach(b=>b.textContent = `Gnocca (${RAW.gnocca.length})`);
   document.querySelectorAll('.pill-btn[data-dataset="no_tutor"]').forEach(b=>b.textContent = `No Tutor (${RAW.no_tutor.length})`);
   document.querySelectorAll('.pill-btn[data-dataset="disattivate"]').forEach(b=>b.textContent = `Disattivate (${RAW.disattivate.length})`);
+  document.querySelectorAll('.side-count[data-dataset="gnocca"]').forEach(b=>b.textContent = `(${RAW.gnocca.length})`);
+  document.querySelectorAll('.side-count[data-dataset="no_tutor"]').forEach(b=>b.textContent = `(${RAW.no_tutor.length})`);
+  document.querySelectorAll('.side-count[data-dataset="disattivate"]').forEach(b=>b.textContent = `(${RAW.disattivate.length})`);
 }
 
 function rerenderDataset(key){
@@ -1140,7 +1133,6 @@ function renderDisattivateClienti(){
             <th data-key="inizio">Inizio</th>
             <th data-key="fine">Fine</th>
             <th data-key="venditore">Venditore</th>
-            <th data-key="note">Note</th>
           </tr></thead>
           <tbody id="d-tbody"></tbody>
         </table>
@@ -1193,10 +1185,9 @@ function renderDisattivateClienti(){
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
         <td>${venditoreHtml(d.venditore)}</td>
-        <td class="note-cell">${d.note}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
-        <td colspan="7">
+        <td colspan="6">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
             <span><i class="fa-solid fa-phone"></i>${d.telefono || 'Telefono non disponibile'}</span>
@@ -1275,20 +1266,27 @@ function showDataset(section, dataset){
   });
 }
 
-const sectionInitialized = {clienti:false, analisi:false, scadenze:false};
-function showSection(name){
-  document.querySelectorAll('.side-btn[data-section]').forEach(b=>b.classList.toggle('active', b.dataset.section===name));
-  document.querySelectorAll('.app-section').forEach(s=>s.classList.toggle('active', s.id==='section-'+name));
-  if(name==='clienti' && !sectionInitialized.clienti){ showDataset('clienti','gnocca'); sectionInitialized.clienti=true; }
-  if(name==='analisi' && !sectionInitialized.analisi){ showDataset('analisi','gnocca'); sectionInitialized.analisi=true; }
-  if(name==='scadenze' && !sectionInitialized.scadenze){ renderScadenze(); sectionInitialized.scadenze=true; }
+const sectionInitialized = {analisi:false, scadenze:false};
+function navigateTo(section, dataset){
+  document.querySelectorAll('.side-btn[data-nav]').forEach(b=>{
+    const active = dataset ? (b.dataset.nav===section+':'+dataset) : (b.dataset.nav===section);
+    b.classList.toggle('active', active);
+  });
+  document.querySelectorAll('.app-section').forEach(s=>s.classList.toggle('active', s.id==='section-'+section));
+  if(section==='clienti'){
+    showDataset('clienti', dataset);
+  } else if(section==='analisi' && !sectionInitialized.analisi){
+    showDataset('analisi','gnocca'); sectionInitialized.analisi=true;
+  } else if(section==='scadenze' && !sectionInitialized.scadenze){
+    renderScadenze(); sectionInitialized.scadenze=true;
+  }
 }
 
-document.querySelectorAll('.side-btn[data-section]').forEach(b=>{
-  b.addEventListener('click', ()=>showSection(b.dataset.section));
-});
-document.querySelectorAll('#section-clienti .pill-btn').forEach(b=>{
-  b.addEventListener('click', ()=>showDataset('clienti', b.dataset.dataset));
+document.querySelectorAll('.side-btn[data-nav]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const parts = b.dataset.nav.split(':');
+    navigateTo(parts[0], parts[1]);
+  });
 });
 document.querySelectorAll('#section-analisi .pill-btn').forEach(b=>{
   b.addEventListener('click', ()=>showDataset('analisi', b.dataset.dataset));
