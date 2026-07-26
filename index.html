@@ -53,11 +53,14 @@
   tbody tr:hover{background:var(--surface-2);}
   .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:500;}
   .b-attivo{background:#e1f5ee; color:#085041;}
-  .b-sospesa{background:#faeeda; color:#633806;}
-  .b-sparita{background:#fcebeb; color:#791f1f;}
+  .b-sospesa{background:#e6f1fb; color:#0c447c;}
+  .b-sparita{background:#faeeda; color:#633806;}
   .b-mainiziato{background:#f1efe8; color:#444441;}
   .b-abbandono{background:#fcebeb; color:#791f1f;}
   .b-vuoto{background:#f1efe8; color:#888780;}
+  .b-perc-12{background:#eeedfe; color:#3c3489;}
+  .b-perc-6{background:#cecbf6; color:#26215c;}
+  .b-perc-altro{background:#f1efe8; color:#5f5e5a;}
   .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
@@ -84,6 +87,8 @@
 <div class="wrap">
   <h1>Dashboard clienti - Personal_G</h1>
   <p class="subtitle">Dati aggiornati al 26 luglio 2026</p>
+
+  <div class="kpi-grid" id="riepilogo-globale" style="margin-bottom:20px;"></div>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="gnocca">Gnocca (196)</button>
@@ -161,6 +166,12 @@ function statoBadgeClass(s){
   if(s==='MAI INIZIATO') return 'b-mainiziato';
   if(s==='ABBANDONO') return 'b-abbandono';
   return 'b-vuoto';
+}
+function percorsoBadgeClass(p){
+  const up = (p||'').toUpperCase();
+  if(up.includes('12 MESI')) return 'b-perc-12';
+  if(up.includes('6 MESI')) return 'b-perc-6';
+  return 'b-perc-altro';
 }
 let chartInstances = {};
 function makeChart(id, config){
@@ -319,7 +330,7 @@ function renderGnoccaTab(){
       <tr>
         <td>${d.cliente}</td>
         <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
-        <td>${d.percorso}</td>
+        <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
         <td>${d.inizio}</td>
         <td>${d.pagamento}</td>
         <td>${fmtEUR(d.importo)}</td>
@@ -369,7 +380,7 @@ function renderContattiList(data){
           <div class="cr-info">
             <span class="cr-nome">${d.cliente}</span>
             <span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span>
-            <span class="cr-meta">${d.percorso} &middot; Tutor: ${d.venditore}</span>
+            <span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span>
           </div>
           <div class="cr-date">
             <span class="cr-data">${d.fine}</span>
@@ -740,6 +751,46 @@ function showTab(name){
 document.querySelectorAll('.tab-btn').forEach(b=>{
   b.addEventListener('click', ()=>showTab(b.dataset.tab));
 });
+
+// ---------------- RIEPILOGO GLOBALE ----------------
+function renderRiepilogoGlobale(){
+  const g = RAW.gnocca;
+  const d = RAW.disattivate;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const totaleClienti = g.length + d.length;
+  const inPercorso = g.filter(x=>x.stato==='IN PERCORSO').length;
+  const congelate = g.filter(x=>x.stato==='SOSPESA').length;
+  const nonRinnovate = d.length;
+  const abbandonate = g.filter(x=>x.stato==='ABBANDONO').length;
+  const sparite = g.filter(x=>x.stato==='SPARITA').length;
+
+  const inScadenza = g.filter(x=>{
+    if(x.stato!=='IN PERCORSO') return false;
+    const fd = parseDate(x.fine);
+    if(!fd) return false;
+    const diff = Math.round((fd-today)/86400000);
+    return diff>=0 && diff<=30;
+  });
+  const daContattare = inScadenza.filter(x=>{
+    const st = (contattiState[contattiId(x)]||{}).stato_contatto;
+    return !st || st==='Da contattare';
+  }).length;
+
+  const cards = [
+    {label:'Clienti totali', value: totaleClienti, sub: `${g.length} gnocca &middot; ${d.length} disattivate`},
+    {label:'In percorso', value: inPercorso, sub: 'stato IN PERCORSO'},
+    {label:'Congelate', value: congelate, sub: 'stato SOSPESA'},
+    {label:'Non rinnovate', value: nonRinnovate, sub: 'scheda Disattivate'},
+    {label:'Abbandonate', value: abbandonate, sub: 'stato ABBANDONO'},
+    {label:'Sparite', value: sparite, sub: 'stato SPARITA'},
+    {label:'In scadenza 30gg', value: inScadenza.length, sub: `${daContattare} da contattare`},
+  ];
+  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join('');
+}
+contattiListeners.push(()=>renderRiepilogoGlobale());
+renderRiepilogoGlobale();
+
 showTab('gnocca');
 </script>
 </body>
