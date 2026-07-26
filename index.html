@@ -78,6 +78,13 @@
   .b-perc-12{background:#eeedfe; color:#3c3489;}
   .b-perc-6{background:#cecbf6; color:#26215c;}
   .b-perc-altro{background:#f1efe8; color:#5f5e5a;}
+  .b-pag-pagodil{background:#faeeda; color:#633806;}
+  .b-pag-scalapay{background:#eeedfe; color:#3c3489;}
+  .b-pag-bonifico{background:#e6f1fb; color:#0c447c;}
+  .b-pag-qomodo{background:#b5d4f4; color:#042c53;}
+  .b-pag-paypal{background:#b5d4f4; color:#042c53;}
+  .b-pag-heylight{background:#fcebeb; color:#791f1f;}
+  .b-pag-altro{background:#f1efe8; color:#5f5e5a;}
   .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
@@ -237,6 +244,16 @@ function percorsoBadgeClass(p){
   if(up.includes('12 MESI')) return 'b-perc-12';
   if(up.includes('6 MESI')) return 'b-perc-6';
   return 'b-perc-altro';
+}
+function pagamentoBadgeClass(p){
+  const up = (p||'').toUpperCase();
+  if(up==='PAGODIL') return 'b-pag-pagodil';
+  if(up==='SCALAPAY') return 'b-pag-scalapay';
+  if(up==='BONIFICO') return 'b-pag-bonifico';
+  if(up==='QOMODO') return 'b-pag-qomodo';
+  if(up==='PAYPAL') return 'b-pag-paypal';
+  if(up==='HEYLIGHT') return 'b-pag-heylight';
+  return 'b-pag-altro';
 }
 let chartInstances = {};
 function makeChart(id, config){
@@ -400,7 +417,7 @@ function renderGnoccaClienti(){
         <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
         <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
         <td>${d.inizio}</td>
-        <td>${d.pagamento}</td>
+        <td><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></td>
         <td>${fmtEUR(d.importo)}</td>
         <td>${d.situazione}</td>
         <td>${d.nutrizione}</td>
@@ -703,7 +720,7 @@ function renderNoTutorClienti(){
         <td>${d.percorso}</td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
-        <td>${d.pagamento}</td>
+        <td><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></td>
         <td>${fmtEUR(d.importo)}</td>
         <td>${d.venditore}</td>
         <td>${d.trainer}</td>
@@ -852,7 +869,7 @@ function renderDisattivateClienti(){
         <td>${d.percorso}</td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
-        <td>${d.pagamento}</td>
+        <td><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></td>
         <td>${fmtEUR(d.importo)}</td>
         <td>${d.venditore}</td>
         <td class="note-cell">${d.note}</td>
