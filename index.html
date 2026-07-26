@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>Gnocca - Personal_G</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root{
-    --bg:#000000; --surface:#ffffff; --surface-2:#fafaf9;
+    --bg:#f5f5f3; --surface:#ffffff; --surface-2:#fafaf9;
     --text:#18181a; --text-secondary:#63625c; --text-muted:#8b8a83;
     --border:#e4e3dd; --border-strong:#cfcec6;
     --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --yellow:#eda100;
@@ -18,17 +19,23 @@
     background:var(--bg); color:var(--text); padding:24px;
   }
   .wrap{max-width:1280px; margin:0 auto;}
-  h1{font-size:22px; font-weight:500; margin:0 0 4px; color:#ffffff;}
-  .subtitle{color:rgba(255,255,255,0.65); font-size:14px; margin:0 0 20px;}
+  h1{font-size:22px; font-weight:500; margin:0 0 4px;}
+  .subtitle{color:var(--text-secondary); font-size:14px; margin:0 0 20px;}
   .app-layout{display:flex; gap:24px; align-items:flex-start;}
-  .sidebar{width:220px; flex-shrink:0; background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:12px; position:sticky; top:24px;}
-  .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 10px 4px;}
-  .side-btn{display:block; width:100%; text-align:left; background:none; border:none; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px;}
-  .side-btn:hover{background:var(--surface-2);}
+  .sidebar{width:230px; flex-shrink:0; background:var(--surface); border:0.5px solid var(--border); border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
+  .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
+  .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px;}
+  .side-btn i{width:18px; text-align:center; font-size:15px; color:var(--text-muted);}
+  .side-btn:hover{background:var(--surface-2); color:var(--text);}
+  .side-btn:hover i{color:var(--text);}
   .side-btn.active{background:var(--surface-2); color:var(--text); font-weight:500;}
-  .side-btn.disabled{color:var(--text-muted); cursor:default; opacity:0.55;}
-  .side-btn.disabled:hover{background:none;}
-  .side-divider{height:0.5px; background:var(--border); margin:10px 4px;}
+  .side-btn.active i{color:#e0245e;}
+  .side-btn.active:hover{background:var(--surface-2);}
+  .side-btn.disabled{color:var(--text-muted); cursor:default; opacity:0.6;}
+  .side-btn.disabled i{color:var(--text-muted); opacity:0.6;}
+  .side-btn.disabled:hover{background:none; color:var(--text-muted);}
+  .side-btn.disabled:hover i{color:var(--text-muted);}
+  .side-divider{height:0.5px; background:var(--border); margin:10px 6px;}
   .main-content{flex:1; min-width:0;}
   .app-section{display:none;}
   .app-section.active{display:block;}
@@ -105,20 +112,20 @@
   <div class="app-layout">
     <div class="sidebar">
       <div class="side-label">Navigazione</div>
-      <button class="side-btn active" data-section="dashboard">Dashboard</button>
-      <button class="side-btn" data-section="clienti">Clienti</button>
-      <button class="side-btn" data-section="analisi">Analisi Dati</button>
-      <button class="side-btn" data-section="scadenze">Gestione Scadenze</button>
+      <button class="side-btn active" data-section="dashboard"><i class="fa-solid fa-house"></i>Dashboard</button>
+      <button class="side-btn" data-section="clienti"><i class="fa-solid fa-users"></i>Clienti</button>
+      <button class="side-btn" data-section="analisi"><i class="fa-solid fa-chart-column"></i>Analisi Dati</button>
+      <button class="side-btn" data-section="scadenze"><i class="fa-solid fa-clock"></i>Gestione Scadenze</button>
       <div class="side-divider"></div>
       <div class="side-label">In arrivo</div>
-      <button class="side-btn disabled" disabled>Task</button>
-      <button class="side-btn disabled" disabled>Allenate Oggi</button>
-      <button class="side-btn disabled" disabled>Feedback Allenamenti</button>
-      <button class="side-btn disabled" disabled>Revisione Foto</button>
-      <button class="side-btn disabled" disabled>Voto Foto Team</button>
-      <button class="side-btn disabled" disabled>Venditori</button>
-      <button class="side-btn disabled" disabled>Compensi</button>
-      <button class="side-btn disabled" disabled>Valutazione Staff</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-list-check"></i>Task</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-rocket"></i>Allenate Oggi</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-comment-dots"></i>Feedback Allenamenti</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-camera"></i>Revisione Foto</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-star"></i>Voto Foto Team</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-store"></i>Venditori</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-wallet"></i>Compensi</button>
+      <button class="side-btn disabled" disabled><i class="fa-solid fa-clipboard-check"></i>Valutazione Staff</button>
     </div>
 
     <div class="main-content">
