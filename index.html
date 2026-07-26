@@ -393,6 +393,33 @@ function deleteClient(dataset, id){
   if(!confirm('Eliminare questo cliente? La modifica è condivisa con tutto il team.')) return;
   setDoc(doc(db, CLIENTI_COLLECTIONS[dataset], id), {_deleted:true});
 }
+function moveGnoccaToDisattivate(gnoccaPayload, oldGnoccaId){
+  const today = new Date();
+  const todayStr = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+  const noteSuffix = `[Spostata da Gnocca il ${todayStr}]`;
+  const disattivatoPayload = {
+    cliente: gnoccaPayload.cliente,
+    stato: 'ABBANDONO',
+    email: gnoccaPayload.email || '',
+    telefono: gnoccaPayload.telefono || '',
+    percorso: gnoccaPayload.percorso || '',
+    inizio: gnoccaPayload.inizio || '',
+    fine: gnoccaPayload.fine || '',
+    pagamento: gnoccaPayload.pagamento || '',
+    importo: gnoccaPayload.importo || 0,
+    nutrizione: gnoccaPayload.nutrizione || '',
+    lezioni_pt: '',
+    programma: gnoccaPayload.programma || '',
+    note: (gnoccaPayload.note ? gnoccaPayload.note + ' ' : '') + noteSuffix,
+    venditore: gnoccaPayload.venditore || '',
+  };
+  const disattivatoId = slug((disattivatoPayload.cliente||'') + '-' + (disattivatoPayload.inizio||'')) || ('cliente-' + Date.now());
+  const tasks = [setDoc(doc(db, CLIENTI_COLLECTIONS.disattivate, disattivatoId), disattivatoPayload)];
+  if(oldGnoccaId){
+    tasks.push(setDoc(doc(db, CLIENTI_COLLECTIONS.gnocca, oldGnoccaId), {_deleted:true}));
+  }
+  return Promise.all(tasks);
+}
 document.getElementById('cm-cancel').addEventListener('click', closeClientModal);
 document.getElementById('client-modal-overlay').addEventListener('click', (e)=>{ if(e.target.id==='client-modal-overlay') closeClientModal(); });
 document.getElementById('cm-save').addEventListener('click', ()=>{
@@ -410,6 +437,14 @@ document.getElementById('cm-save').addEventListener('click', ()=>{
     payload[f.key] = v;
   });
   if(!valid){ alert('Il campo Cliente è obbligatorio.'); return; }
+
+  if(dataset==='gnocca' && payload.stato==='ABBANDONO'){
+    moveGnoccaToDisattivate(payload, isNew ? null : id)
+      .then(()=>{ closeClientModal(); alert('Cliente spostata in Disattivate.'); })
+      .catch(err=>alert('Errore nel salvataggio: ' + err.message));
+    return;
+  }
+
   const docId = isNew ? (slug(payload.cliente) + '-' + Date.now()) : id;
   setDoc(doc(db, CLIENTI_COLLECTIONS[dataset], docId), payload)
     .then(()=>closeClientModal())
