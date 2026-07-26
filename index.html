@@ -85,12 +85,16 @@
   .b-pag-paypal{background:#b5d4f4; color:#042c53;}
   .b-pag-heylight{background:#fcebeb; color:#791f1f;}
   .b-pag-altro{background:#f1efe8; color:#5f5e5a;}
+  .b-situ-attiva{background:#eaf3de; color:#27500a;}
+  .b-situ-poco{background:#faeeda; color:#633806;}
+  .b-situ-non{background:#fcebeb; color:#791f1f;}
+  .b-situ-altro{background:#f1efe8; color:#5f5e5a;}
   .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
   .client-row{cursor:pointer;}
   .client-detail td{background:var(--surface-2); padding:12px 14px;}
-  .detail-box{display:flex; flex-wrap:wrap; gap:24px; font-size:13px; color:var(--text-secondary);}
+  .detail-box{display:flex; flex-wrap:wrap; align-items:center; gap:24px; font-size:13px; color:var(--text-secondary);}
   .detail-box i{margin-right:6px; color:var(--text-muted);}
   .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
   .sync-tag{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
@@ -255,6 +259,13 @@ function pagamentoBadgeClass(p){
   if(up==='HEYLIGHT') return 'b-pag-heylight';
   return 'b-pag-altro';
 }
+function situazioneBadgeClass(s){
+  const up = (s||'').toUpperCase();
+  if(up==='ATTIVA') return 'b-situ-attiva';
+  if(up==='POCO ATTIVA') return 'b-situ-poco';
+  if(up==='NON ATTIVA') return 'b-situ-non';
+  return 'b-situ-altro';
+}
 let chartInstances = {};
 function makeChart(id, config){
   if(chartInstances[id]) chartInstances[id].destroy();
@@ -363,8 +374,6 @@ function renderGnoccaClienti(){
             <th data-key="stato">Stato</th>
             <th data-key="percorso">Percorso</th>
             <th data-key="inizio">Inizio</th>
-            <th data-key="pagamento">Pagamento</th>
-            <th data-key="importo">Importo</th>
             <th data-key="situazione">Attivita</th>
             <th data-key="nutrizione">Nutrizione</th>
             <th data-key="pt_extra">PT extra</th>
@@ -417,18 +426,18 @@ function renderGnoccaClienti(){
         <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
         <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
         <td>${d.inizio}</td>
-        <td><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></td>
-        <td>${fmtEUR(d.importo)}</td>
-        <td>${d.situazione}</td>
+        <td><span class="badge ${situazioneBadgeClass(d.situazione)}">${d.situazione}</span></td>
         <td>${d.nutrizione}</td>
         <td>${d.pt_extra}</td>
         <td>${d.venditore}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
-        <td colspan="10">
+        <td colspan="8">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
             <span><i class="fa-solid fa-phone"></i>${d.telefono || 'Telefono non disponibile'}</span>
+            <span><i class="fa-solid fa-credit-card"></i><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></span>
+            <span><i class="fa-solid fa-euro-sign"></i>${fmtEUR(d.importo)}</span>
           </div>
         </td>
       </tr>`).join('');
@@ -820,8 +829,6 @@ function renderDisattivateClienti(){
             <th data-key="percorso">Percorso</th>
             <th data-key="inizio">Inizio</th>
             <th data-key="fine">Fine</th>
-            <th data-key="pagamento">Pagamento</th>
-            <th data-key="importo">Importo</th>
             <th data-key="venditore">Venditore</th>
             <th data-key="note">Note</th>
           </tr></thead>
@@ -869,16 +876,16 @@ function renderDisattivateClienti(){
         <td>${d.percorso}</td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
-        <td><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></td>
-        <td>${fmtEUR(d.importo)}</td>
         <td>${d.venditore}</td>
         <td class="note-cell">${d.note}</td>
       </tr>
       <tr class="client-detail" style="display:none;">
-        <td colspan="8">
+        <td colspan="6">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
             <span><i class="fa-solid fa-phone"></i>${d.telefono || 'Telefono non disponibile'}</span>
+            <span><i class="fa-solid fa-credit-card"></i><span class="badge ${pagamentoBadgeClass(d.pagamento)}">${d.pagamento}</span></span>
+            <span><i class="fa-solid fa-euro-sign"></i>${fmtEUR(d.importo)}</span>
           </div>
         </td>
       </tr>`).join('');
