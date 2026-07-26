@@ -1223,6 +1223,7 @@ function renderRiepilogoGlobale(){
   const congelate = g.filter(x=>x.stato==='SOSPESA').length;
   const abbandonate = g.filter(x=>x.stato==='ABBANDONO').length;
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
+  const nonRinnovo = g.filter(x=>x.stato==='NON RINNOVO').length;
 
   const inScadenza = g.filter(x=>{
     if(x.stato!=='IN PERCORSO') return false;
@@ -1238,6 +1239,7 @@ function renderRiepilogoGlobale(){
     {label:'Congelate', value: congelate, bg:'#e6f1fb', color:'#0c447c'},
     {label:'Abbandonate', value: abbandonate, bg:'#fcebeb', color:'#791f1f'},
     {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806'},
+    {label:'Non rinnovo', value: nonRinnovo, bg:'#efe9fb', color:'#4a3aa7'},
     {label:'In scadenza 30gg', value: inScadenza.length, bg:'#ffffff', color:'#18181a'},
   ];
   document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
