@@ -80,7 +80,7 @@
   }
   .filters input{width:200px;}
   table{width:100%; border-collapse:collapse; font-size:13px;}
-  th, td{padding:8px 10px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
+  th, td{padding:11px 18px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
   th{color:var(--text-secondary); font-weight:500; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--surface);}
   tbody tr:hover{background:var(--surface-2);}
   .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:500;}
@@ -1072,7 +1072,7 @@ function renderNoTutorClienti(){
       <tr class="client-row">
         <td>${d.cliente}</td>
         <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
-        <td>${d.percorso}</td>
+        <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
         <td>${venditoreHtml(d.venditore)}</td>
