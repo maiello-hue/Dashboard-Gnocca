@@ -56,6 +56,15 @@
   .kpi .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
   .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
   .kpi-clickable:hover{filter:brightness(0.96); box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .kpi-clickable.kpi-open{outline:2px solid var(--text); outline-offset:-2px;}
+  .riepilogo-detail-panel{margin-top:4px;}
+  .riepilogo-detail-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .riepilogo-detail-head h2{margin:0;}
+  .riepilogo-detail-list{max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
+  .riepilogo-detail-row{display:flex; align-items:center; gap:12px; padding:8px 4px; border-bottom:0.5px solid var(--border); font-size:13px; flex-wrap:wrap;}
+  .riepilogo-detail-row:last-child{border-bottom:none;}
+  .rd-nome{font-weight:500; flex:1 1 160px; min-width:140px;}
+  .rd-fine{margin-left:auto; color:var(--text-secondary); font-size:12px;}
   .panel{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px;}
   .panel h2{font-size:16px; font-weight:500; margin:0 0 4px;}
   .panel .desc{font-size:12px; color:var(--text-muted); margin:0 0 12px;}
@@ -174,6 +183,7 @@
     <div class="main-content">
       <div id="section-dashboard" class="app-section active">
         <div class="kpi-grid" id="riepilogo-globale"></div>
+        <div id="riepilogo-detail" style="display:none;"></div>
       </div>
 
       <div id="section-clienti" class="app-section">
@@ -1244,6 +1254,61 @@ function renderDisattivateClienti(){
 }
 
 // ================= RIEPILOGO GLOBALE (Dashboard) =================
+function riepilogoInScadenza(g, today){
+  return g.filter(x=>{
+    if(x.stato!=='IN PERCORSO') return false;
+    const fd = parseDate(x.fine);
+    if(!fd) return false;
+    const diff = Math.round((fd-today)/86400000);
+    return diff>=0 && diff<=30;
+  });
+}
+function computeCardClients(filter){
+  const g = RAW.gnocca;
+  const today = new Date(); today.setHours(0,0,0,0);
+  if(filter==='') return g;
+  if(filter==='SCADENZA') return riepilogoInScadenza(g, today);
+  return g.filter(x=>x.stato===filter);
+}
+let openDetailFilter = null;
+let openDetailLabel = '';
+function renderRiepilogoDetail(){
+  const panel = document.getElementById('riepilogo-detail');
+  if(openDetailFilter===null){ panel.style.display='none'; panel.innerHTML=''; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const clients = computeCardClients(openDetailFilter).slice().sort((a,b)=>(parseDate(a.fine)||0)-(parseDate(b.fine)||0));
+  panel.innerHTML = `
+    <div class="panel riepilogo-detail-panel">
+      <div class="riepilogo-detail-head">
+        <h2>${openDetailLabel} (${clients.length})</h2>
+        <button type="button" class="btn-icon" id="riepilogo-detail-close"><i class="fa-solid fa-xmark"></i>Chiudi</button>
+      </div>
+      <div class="riepilogo-detail-list">
+        ${clients.length ? clients.map(d=>{
+          let extra = d.fine || '';
+          if(openDetailFilter==='SCADENZA' && d.fine){
+            const {label} = contattiGgInfo(parseDate(d.fine), today);
+            extra = `${d.fine} · ${label}`;
+          }
+          return `<div class="riepilogo-detail-row">
+            <span class="rd-nome">${d.cliente}</span>
+            <span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span>
+            <span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span>
+            <span class="rd-fine">${extra}</span>
+          </div>`;
+        }).join('') : '<p class="desc">Nessun cliente in questa categoria.</p>'}
+      </div>
+    </div>
+  `;
+  panel.style.display='block';
+  document.getElementById('riepilogo-detail-close').addEventListener('click', closeRiepilogoDetail);
+}
+function closeRiepilogoDetail(){
+  openDetailFilter = null;
+  openDetailLabel = '';
+  renderRiepilogoDetail();
+  document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.remove('kpi-open'));
+}
 function renderRiepilogoGlobale(){
   const g = RAW.gnocca;
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1254,14 +1319,7 @@ function renderRiepilogoGlobale(){
   const abbandonate = g.filter(x=>x.stato==='ABBANDONO').length;
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
   const nonRinnovo = g.filter(x=>x.stato==='NON RINNOVO').length;
-
-  const inScadenza = g.filter(x=>{
-    if(x.stato!=='IN PERCORSO') return false;
-    const fd = parseDate(x.fine);
-    if(!fd) return false;
-    const diff = Math.round((fd-today)/86400000);
-    return diff>=0 && diff<=30;
-  });
+  const inScadenza = riepilogoInScadenza(g, today);
 
   const cards = [
     {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a', filter:''},
@@ -1272,7 +1330,8 @@ function renderRiepilogoGlobale(){
     {label:'Non rinnovo', value: nonRinnovo, bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
     {label:'In scadenza 30gg', value: inScadenza.length, bg:'#ffffff', color:'#18181a', filter:'SCADENZA'},
   ];
-  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi kpi-clickable" data-filter="${k.filter}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
+  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(k.label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
+  renderRiepilogoDetail();
 }
 contattiListeners.push(()=>renderRiepilogoGlobale());
 renderRiepilogoGlobale();
@@ -1280,14 +1339,11 @@ document.getElementById('riepilogo-globale').addEventListener('click', (e)=>{
   const card = e.target.closest('.kpi-clickable');
   if(!card) return;
   const filter = card.dataset.filter;
-  if(filter==='SCADENZA'){
-    navigateTo('scadenze');
-    return;
-  }
-  navigateTo('clienti');
-  showDataset('clienti', 'gnocca');
-  const sel = document.getElementById('g-stato');
-  if(sel){ sel.value = filter; sel.dispatchEvent(new Event('input')); }
+  if(openDetailFilter===filter){ closeRiepilogoDetail(); return; }
+  openDetailFilter = filter;
+  openDetailLabel = card.dataset.label;
+  renderRiepilogoDetail();
+  document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.toggle('kpi-open', c.dataset.filter===filter));
 });
 
 // ================= NAVIGAZIONE =================
