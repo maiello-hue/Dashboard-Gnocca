@@ -136,6 +136,8 @@
   .b-perc-6{background:#c2185b; color:#ffffff;}
   .b-perc-altro{background:#f1efe8; color:#5f5e5a;}
   .b-perc-referral{background:#eaf3de; color:#27500a;}
+  .b-perc-6-6gnocca{background:#fbe3d3; color:#8a3c0a;}
+  .b-perc-4{background:#e6f1fb; color:#0c447c;}
   .b-situ-attiva{background:#eaf3de; color:#27500a;}
   .b-situ-poco{background:#faeeda; color:#633806;}
   .b-situ-non{background:#fcebeb; color:#791f1f;}
@@ -750,6 +752,8 @@ function statoBadgeClass(s){
 }
 function percorsoBadgeClass(p){
   const up = (p||'').toUpperCase();
+  if(up.includes('6 MESI') && up.includes('GNOCCA')) return 'b-perc-6-6gnocca';
+  if(up.includes('4 MESI')) return 'b-perc-4';
   if(up.includes('12 MESI')) return 'b-perc-12';
   if(up.includes('6 MESI')) return 'b-perc-6';
   if(up.includes('REFERRAL')) return 'b-perc-referral';
