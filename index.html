@@ -17,7 +17,7 @@
   *{box-sizing:border-box;}
   body{
     margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg); color:var(--text); padding:24px;
+    background:var(--bg); color:var(--text); padding:24px; overflow-x:hidden;
   }
   .wrap{max-width:1280px; margin:0 auto;}
   h1{font-size:22px; font-weight:500; margin:0 0 4px;}
@@ -61,6 +61,18 @@
     .riepilogo-detail-row{gap:6px;}
     .rd-fine{margin-left:0;}
     th, td{white-space:nowrap;}
+    .panel{padding:14px;}
+    .pill-tabs{gap:6px;}
+    .pill-btn{padding:7px 12px; font-size:12px;}
+    .btn-add{width:100%; justify-content:center;}
+    .contatto-row{flex-direction:column; align-items:stretch; gap:8px;}
+    .cr-info{min-width:0; flex-basis:auto;}
+    .cr-date{flex-direction:row; align-items:center; justify-content:space-between; min-width:0; width:100%;}
+    .cr-select{width:100%;}
+    .cr-note{width:100%;}
+    .detail-box{gap:12px;}
+    .detail-actions{width:100%; justify-content:flex-start;}
+    .modal-box{padding:16px;}
   }
   .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:20px;}
   .kpi{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:16px;}
