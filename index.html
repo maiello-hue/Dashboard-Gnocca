@@ -64,11 +64,13 @@
     .pill-tabs{gap:6px;}
     .pill-btn{padding:7px 12px; font-size:12px;}
     .btn-add{width:100%; justify-content:center;}
-    .contatto-row{flex-direction:column; align-items:stretch; gap:8px;}
-    .cr-info{min-width:0; flex-basis:auto;}
-    .cr-date{flex-direction:row; align-items:center; justify-content:space-between; min-width:0; width:100%;}
-    .cr-select{width:100%;}
-    .cr-note{width:100%;}
+    .contatti-list{max-height:none;}
+    .contatto-row{align-items:center; gap:6px; background:var(--surface); border:0.5px solid var(--border); border-bottom:0.5px solid var(--border); border-radius:12px; margin-bottom:8px; padding:10px 12px;}
+    .contatto-row:last-child{margin-bottom:0;}
+    .cr-info{min-width:0; width:100%; flex-basis:100%;}
+    .cr-date{flex-direction:row; align-items:center; justify-content:space-between; min-width:0; width:100%; flex-basis:100%;}
+    .cr-select{flex:1 1 45%; width:auto; min-width:0;}
+    .cr-note{flex:1 1 45%; width:auto; min-width:0;}
     .detail-box{gap:12px;}
     .detail-actions{width:100%; justify-content:flex-start;}
     .modal-box{padding:16px;}
