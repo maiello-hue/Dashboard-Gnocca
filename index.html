@@ -81,6 +81,8 @@
   .filters input{width:200px;}
   table{width:100%; border-collapse:collapse; font-size:13px;}
   th, td{padding:11px 18px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
+  th:nth-child(3), td:nth-child(3){padding-right:8px;}
+  th:nth-child(4), td:nth-child(4){padding-left:8px;}
   th{color:var(--text-secondary); font-weight:500; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--surface);}
   tbody tr:hover{background:var(--surface-2);}
   .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:500;}
@@ -1018,7 +1020,6 @@ function renderNoTutorClienti(){
             <th data-key="venditore">Venditore</th>
             <th data-key="trainer">Trainer</th>
             <th data-key="nutrizionista">Nutrizionista</th>
-            <th>Azioni</th>
           </tr></thead>
           <tbody id="nt-tbody"></tbody>
         </table>
@@ -1078,16 +1079,16 @@ function renderNoTutorClienti(){
         <td>${venditoreHtml(d.venditore)}</td>
         <td>${ptExtraHtml(d.trainer)}</td>
         <td>${nutriHtml(d.nutrizionista)}</td>
-        <td class="azioni-cell">
-          <button type="button" class="btn-icon btn-edit-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-pen"></i></button>
-          <button type="button" class="btn-icon btn-delete-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-trash"></i></button>
-        </td>
       </tr>
       <tr class="client-detail" style="display:none;">
-        <td colspan="9">
+        <td colspan="8">
           <div class="detail-box">
             <span><i class="fa-solid fa-credit-card"></i>${d.pagamento || 'Pagamento non disponibile'}</span>
             <span><i class="fa-solid fa-coins"></i>${fmtEUR(d.importo)}</span>
+            <span class="detail-actions">
+              <button type="button" class="btn-icon btn-edit-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-pen"></i>Modifica</button>
+              <button type="button" class="btn-icon btn-delete-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-trash"></i>Elimina</button>
+            </span>
           </div>
         </td>
       </tr>`).join('');
