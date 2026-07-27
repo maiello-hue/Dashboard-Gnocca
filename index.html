@@ -54,6 +54,8 @@
   .kpi .label{font-size:13px; color:var(--text-secondary); margin-bottom:6px;}
   .kpi .value{font-size:24px; font-weight:500;}
   .kpi .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
+  .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
+  .kpi-clickable:hover{filter:brightness(0.96); box-shadow:0 2px 8px rgba(0,0,0,0.06);}
   .panel{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px;}
   .panel h2{font-size:16px; font-weight:500; margin:0 0 4px;}
   .panel .desc{font-size:12px; color:var(--text-muted); margin:0 0 12px;}
@@ -494,6 +496,9 @@ document.getElementById('cm-save').addEventListener('click', ()=>{
 });
 const COLORS = {blue:'#2a78d6',orange:'#eb6834',aqua:'#1baf7a',yellow:'#eda100',magenta:'#e87ba4',green:'#008300',violet:'#4a3aa7',red:'#e34948',gray:'#9a998f'};
 const palette = [COLORS.blue,COLORS.orange,COLORS.aqua,COLORS.yellow,COLORS.magenta,COLORS.violet,COLORS.red,COLORS.gray];
+const STATO_COLORS = {'IN PERCORSO':COLORS.green,'SOSPESA':COLORS.blue,'SPARITA':COLORS.yellow,'ABBANDONO':COLORS.red,'NON RINNOVO':COLORS.violet};
+const SITU_COLORS = {'ATTIVA':COLORS.green,'POCO ATTIVA':COLORS.yellow,'NON ATTIVA':COLORS.red};
+function colorsFor(labels, map){ return labels.map(l => map[l] || COLORS.gray); }
 
 function parseDate(s){
   if(!s) return null;
@@ -635,12 +640,14 @@ function renderGnoccaAnalisi(){
   ].map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join('');
 
   const statoM = countBy(data,'stato');
-  renderLegend(document.getElementById('g-legend-stato'), Object.keys(statoM), Object.values(statoM), palette, false);
-  makeChart('g-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  const statoColors = colorsFor(Object.keys(statoM), STATO_COLORS);
+  renderLegend(document.getElementById('g-legend-stato'), Object.keys(statoM), Object.values(statoM), statoColors, false);
+  makeChart('g-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:statoColors, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const situM = countBy(data,'situazione');
-  renderLegend(document.getElementById('g-legend-situ'), Object.keys(situM), Object.values(situM), palette, false);
-  makeChart('g-chart-situ', {type:'doughnut', data:{labels:Object.keys(situM), datasets:[{data:Object.values(situM), backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  const situColors = colorsFor(Object.keys(situM), SITU_COLORS);
+  renderLegend(document.getElementById('g-legend-situ'), Object.keys(situM), Object.values(situM), situColors, false);
+  makeChart('g-chart-situ', {type:'doughnut', data:{labels:Object.keys(situM), datasets:[{data:Object.values(situM), backgroundColor:situColors, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const pagM = sumBy(data,'pagamento','importo');
   const pagLabels = Object.keys(pagM); const pagValues = Object.values(pagM).map(v=>Math.round(v));
@@ -945,8 +952,9 @@ function renderNoTutorAnalisi(){
   ].map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join('');
 
   const statoM = countBy(data,'stato');
-  renderLegend(document.getElementById('nt-legend-stato'), Object.keys(statoM), Object.values(statoM), palette, false);
-  makeChart('nt-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  const statoColors = colorsFor(Object.keys(statoM), STATO_COLORS);
+  renderLegend(document.getElementById('nt-legend-stato'), Object.keys(statoM), Object.values(statoM), statoColors, false);
+  makeChart('nt-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:statoColors, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const pagM = sumBy(data,'pagamento','importo');
   const pagLabels = Object.keys(pagM); const pagValues = Object.values(pagM).map(v=>Math.round(v));
@@ -1256,18 +1264,31 @@ function renderRiepilogoGlobale(){
   });
 
   const cards = [
-    {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a'},
-    {label:'In percorso', value: inPercorso, bg:'#eaf3de', color:'#27500a'},
-    {label:'Congelate', value: congelate, bg:'#e6f1fb', color:'#0c447c'},
-    {label:'Abbandonate', value: abbandonate, bg:'#fcebeb', color:'#791f1f'},
-    {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806'},
-    {label:'Non rinnovo', value: nonRinnovo, bg:'#efe9fb', color:'#4a3aa7'},
-    {label:'In scadenza 30gg', value: inScadenza.length, bg:'#ffffff', color:'#18181a'},
+    {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a', filter:''},
+    {label:'In percorso', value: inPercorso, bg:'#eaf3de', color:'#27500a', filter:'IN PERCORSO'},
+    {label:'Congelate', value: congelate, bg:'#e6f1fb', color:'#0c447c', filter:'SOSPESA'},
+    {label:'Abbandonate', value: abbandonate, bg:'#fcebeb', color:'#791f1f', filter:'ABBANDONO'},
+    {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806', filter:'SPARITA'},
+    {label:'Non rinnovo', value: nonRinnovo, bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
+    {label:'In scadenza 30gg', value: inScadenza.length, bg:'#ffffff', color:'#18181a', filter:'SCADENZA'},
   ];
-  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
+  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi kpi-clickable" data-filter="${k.filter}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
 }
 contattiListeners.push(()=>renderRiepilogoGlobale());
 renderRiepilogoGlobale();
+document.getElementById('riepilogo-globale').addEventListener('click', (e)=>{
+  const card = e.target.closest('.kpi-clickable');
+  if(!card) return;
+  const filter = card.dataset.filter;
+  if(filter==='SCADENZA'){
+    navigateTo('scadenze');
+    return;
+  }
+  navigateTo('clienti');
+  showDataset('clienti', 'gnocca');
+  const sel = document.getElementById('g-stato');
+  if(sel){ sel.value = filter; sel.dispatchEvent(new Event('input')); }
+});
 
 // ================= NAVIGAZIONE =================
 const renderedViews = {};
