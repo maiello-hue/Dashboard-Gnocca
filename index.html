@@ -13,6 +13,7 @@
     --border:#e4e3dd; --border-strong:#cfcec6;
     --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --yellow:#eda100;
     --magenta:#e87ba4; --green:#008300; --violet:#4a3aa7; --red:#e34948; --gray:#9a998f;
+    --accent:#e0245e;
   }
   *{box-sizing:border-box;}
   body{
@@ -34,7 +35,7 @@
   .side-btn:hover{background:var(--surface-2); color:var(--text);}
   .side-btn:hover i{color:var(--text);}
   .side-btn.active{background:var(--surface-2); color:var(--text); font-weight:500;}
-  .side-btn.active i{color:#e0245e;}
+  .side-btn.active i{color:var(--accent);}
   .side-btn.active:hover{background:var(--surface-2);}
   .side-btn.disabled{color:var(--text-muted); cursor:default; opacity:0.6;}
   .side-btn.disabled i{color:var(--text-muted); opacity:0.6;}
@@ -118,6 +119,7 @@
   .filters input{width:200px;}
   table{width:100%; border-collapse:collapse; font-size:13px;}
   th, td{padding:11px 18px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
+  body.density-compact th, body.density-compact td{padding:6px 12px;}
   th:nth-child(3), td:nth-child(3){padding-right:8px;}
   th:nth-child(4), td:nth-child(4){padding-left:8px;}
   th{color:var(--text-secondary); font-weight:500; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--surface);}
@@ -201,6 +203,33 @@
   .cm-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
   .btn-secondary{background:var(--surface-2); color:var(--text); border:0.5px solid var(--border-strong); border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
   .btn-primary{background:var(--text); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
+  .settings-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); gap:16px; align-items:start;}
+  .opt-group{margin-bottom:18px;}
+  .opt-group:last-child{margin-bottom:0;}
+  .opt-group h3{font-size:13px; font-weight:500; margin:0 0 8px;}
+  .opt-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .opt-chip{display:inline-flex; align-items:center; gap:6px; background:var(--surface-2); border:0.5px solid var(--border-strong); border-radius:999px; padding:5px 6px 5px 12px; font-size:12px; color:var(--text);}
+  .opt-chip button{background:none; border:none; color:var(--text-muted); cursor:pointer; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px;}
+  .opt-chip button:hover{background:var(--border); color:var(--text);}
+  .opt-add{display:flex; gap:8px;}
+  .opt-add input{flex:1; height:32px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); padding:0 10px; font-size:12px;}
+  .opt-add button{height:32px; border-radius:8px; border:none; background:var(--text); color:#fff; padding:0 12px; font-size:12px; cursor:pointer;}
+  .status-row{display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:10px;}
+  .status-dot{width:9px; height:9px; border-radius:50%; background:var(--aqua); flex-shrink:0;}
+  .status-dot.offline{background:var(--red);}
+  .settings-counts{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;}
+  .settings-count{background:var(--surface-2); border-radius:10px; padding:10px 14px; font-size:12px; color:var(--text-secondary); min-width:90px;}
+  .settings-count b{display:block; font-size:18px; color:var(--text); font-weight:500;}
+  .appearance-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:0.5px solid var(--border);}
+  .appearance-row:last-child{border-bottom:none;}
+  .appearance-row .label{font-size:13px;}
+  .appearance-row .desc{font-size:12px; color:var(--text-muted); margin-top:2px;}
+  .seg-toggle{display:flex; border:0.5px solid var(--border-strong); border-radius:8px; overflow:hidden;}
+  .seg-toggle button{background:var(--surface); border:none; padding:7px 14px; font-size:12px; color:var(--text-secondary); cursor:pointer;}
+  .seg-toggle button.active{background:var(--text); color:#fff;}
+  .swatches{display:flex; gap:8px;}
+  .swatch{width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent;}
+  .swatch.active{border-color:var(--text);}
 </style>
 </head>
 <body>
@@ -219,6 +248,8 @@
       <button class="side-btn" data-nav="no_tutor"><i class="fa-solid fa-user-group"></i>No Tutor <span class="side-count" data-dataset="no_tutor">(52)</span></button>
       <button class="side-btn" data-nav="analisi"><i class="fa-solid fa-chart-column"></i>Analisi Dati</button>
       <button class="side-btn" data-nav="scadenze"><i class="fa-solid fa-clock"></i>Gestione Scadenze</button>
+      <div class="side-divider"></div>
+      <button class="side-btn" data-nav="impostazioni"><i class="fa-solid fa-gear"></i>Impostazioni</button>
     </div>
 
     <div class="main-content">
@@ -253,6 +284,10 @@
 
       <div id="section-scadenze" class="app-section">
         <div id="scadenze-content"></div>
+      </div>
+
+      <div id="section-impostazioni" class="app-section">
+        <div id="impostazioni-content"></div>
       </div>
     </div>
   </div>
@@ -383,6 +418,138 @@ const VENDITORE_OPTIONS = ['Personal_G','Salvatore','Peppe'];
 const NUTRI_OPTIONS = ['Non assegnato','Alessia','Matilde','Nicole','Sofia','Vanessa'];
 const PT_EXTRA_OPTIONS = ['Nessuno','Federica','Fiorenzo','Gianmiki','Marco','Matteo','Personal_G'];
 const TRAINER_OPTIONS = ['Non assegnato','Federica','Fiorenzo','Gianmiki','Marco','Matteo','Personal_G'];
+
+// ================= IMPOSTAZIONI (liste a tendina, sync, aspetto) =================
+const OPTION_LISTS = {percorso:PERCORSO_OPTIONS, venditore:VENDITORE_OPTIONS, nutrizione:NUTRI_OPTIONS, pt_extra:PT_EXTRA_OPTIONS, trainer:TRAINER_OPTIONS};
+const OPTION_LABELS = {percorso:'Percorso', venditore:'Venditore', nutrizione:'Nutrizionista / Nutrizione', pt_extra:'PT extra (Gnocca)', trainer:'Trainer (No Tutor)'};
+const SETTINGS_COLLECTION = 'impostazioni_dashboard';
+const SETTINGS_DOC_ID = 'opzioni';
+onSnapshot(doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID), snap=>{
+  if(snap.exists()){
+    const data = snap.data();
+    Object.keys(OPTION_LISTS).forEach(key=>{
+      if(Array.isArray(data[key])){
+        const arr = OPTION_LISTS[key];
+        arr.length = 0;
+        data[key].forEach(v=>arr.push(v));
+      }
+    });
+  }
+  if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni();
+});
+function saveOptionList(key){
+  setDoc(doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID), {[key]: OPTION_LISTS[key]}, {merge:true});
+}
+function addOptionValue(key, value){
+  value = (value||'').trim();
+  if(!value) return;
+  const arr = OPTION_LISTS[key];
+  if(arr.includes(value)) return;
+  arr.push(value);
+  saveOptionList(key);
+  renderImpostazioni();
+}
+function removeOptionValue(key, value){
+  const arr = OPTION_LISTS[key];
+  const idx = arr.indexOf(value);
+  if(idx===-1) return;
+  arr.splice(idx,1);
+  saveOptionList(key);
+  renderImpostazioni();
+}
+const ACCENT_COLORS = ['#e0245e','#2a78d6','#1baf7a','#eda100','#4a3aa7','#eb6834'];
+function applyAppearance(){
+  const density = localStorage.getItem('pg_density') || 'comfortable';
+  document.body.classList.toggle('density-compact', density==='compact');
+  const accent = localStorage.getItem('pg_accent') || '#e0245e';
+  document.documentElement.style.setProperty('--accent', accent);
+}
+applyAppearance();
+function renderImpostazioni(){
+  const el = document.getElementById('impostazioni-content');
+  if(!el) return;
+  const density = localStorage.getItem('pg_density') || 'comfortable';
+  const accent = localStorage.getItem('pg_accent') || '#e0245e';
+  const online = navigator.onLine;
+  el.innerHTML = `
+    <div class="settings-grid">
+      <div class="panel">
+        <h2>Liste a tendina</h2>
+        <p class="desc">Aggiungi o rimuovi le opzioni disponibili nei menu a tendina del modulo cliente. Sincronizzato con tutto il team.</p>
+        ${Object.keys(OPTION_LISTS).map(key=>`
+          <div class="opt-group">
+            <h3>${OPTION_LABELS[key]}</h3>
+            <div class="opt-chips">
+              ${OPTION_LISTS[key].map(v=>`<span class="opt-chip">${escHtml(v)}<button type="button" class="opt-remove" data-key="${key}" data-value="${escAttr(v)}"><i class="fa-solid fa-xmark"></i></button></span>`).join('') || '<span class="desc">Nessuna opzione</span>'}
+            </div>
+            <div class="opt-add">
+              <input type="text" placeholder="Nuova opzione..." data-optinput="${key}">
+              <button type="button" class="opt-addbtn" data-key="${key}">Aggiungi</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <div class="panel">
+          <h2>Sincronizzazione</h2>
+          <div class="status-row"><span class="status-dot ${online?'':'offline'}"></span>${online ? 'Connesso - dati condivisi in tempo reale' : 'Offline - le modifiche verranno sincronizzate al ritorno online'}</div>
+          <div class="settings-counts">
+            <div class="settings-count"><b>${RAW.gnocca.length}</b>Gnocca</div>
+            <div class="settings-count"><b>${RAW.no_tutor.length}</b>No Tutor</div>
+            <div class="settings-count"><b>${RAW.disattivate.length}</b>Disattivate</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Aspetto</h2>
+          <div class="appearance-row">
+            <div><div class="label">Densita tabelle</div><div class="desc">Righe piu compatte o piu spaziate</div></div>
+            <div class="seg-toggle">
+              <button type="button" data-density="comfortable" class="${density==='comfortable'?'active':''}">Normale</button>
+              <button type="button" data-density="compact" class="${density==='compact'?'active':''}">Compatta</button>
+            </div>
+          </div>
+          <div class="appearance-row">
+            <div><div class="label">Colore evidenziazione menu</div><div class="desc">Solo su questo dispositivo</div></div>
+            <div class="swatches">
+              ${ACCENT_COLORS.map(c=>`<span class="swatch ${c===accent?'active':''}" data-accent="${c}" style="background:${c};"></span>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  el.querySelectorAll('.opt-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>removeOptionValue(btn.dataset.key, btn.dataset.value));
+  });
+  el.querySelectorAll('.opt-addbtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = el.querySelector(`[data-optinput="${btn.dataset.key}"]`);
+      addOptionValue(btn.dataset.key, input.value);
+      input.value = '';
+    });
+  });
+  el.querySelectorAll('[data-optinput]').forEach(input=>{
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); addOptionValue(input.dataset.optinput, input.value); input.value=''; }
+    });
+  });
+  el.querySelectorAll('[data-density]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      localStorage.setItem('pg_density', btn.dataset.density);
+      applyAppearance();
+      renderImpostazioni();
+    });
+  });
+  el.querySelectorAll('[data-accent]').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      localStorage.setItem('pg_accent', sw.dataset.accent);
+      applyAppearance();
+      renderImpostazioni();
+    });
+  });
+}
+window.addEventListener('online', ()=>{ if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni(); });
+window.addEventListener('offline', ()=>{ if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni(); });
 
 const FIELD_CONFIGS = {
   gnocca: [
@@ -1420,7 +1587,7 @@ function showDataset(section, dataset){
   });
 }
 
-const sectionInitialized = {clienti:false, no_tutor:false, analisi:false, scadenze:false};
+const sectionInitialized = {clienti:false, no_tutor:false, analisi:false, scadenze:false, impostazioni:false};
 function navigateTo(section){
   document.querySelectorAll('.side-btn[data-nav]').forEach(b=>{
     b.classList.toggle('active', b.dataset.nav===section);
@@ -1434,6 +1601,8 @@ function navigateTo(section){
     showDataset('analisi','gnocca'); sectionInitialized.analisi=true;
   } else if(section==='scadenze' && !sectionInitialized.scadenze){
     renderScadenze(); sectionInitialized.scadenze=true;
+  } else if(section==='impostazioni'){
+    renderImpostazioni(); sectionInitialized.impostazioni=true;
   }
 }
 
