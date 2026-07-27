@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Gnocca - Personal_G</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -48,7 +49,19 @@
   .pill-btn.active{background:var(--text); color:#ffffff; border-color:var(--text);}
   .dataset-panel{display:none;}
   .dataset-panel.active{display:block;}
-  @media (max-width:760px){ .app-layout{flex-direction:column;} .sidebar{width:100%; position:static;} }
+  @media (max-width:760px){
+    .app-layout{flex-direction:column;}
+    .sidebar{width:100%; position:static;}
+    body{padding:14px;}
+    .charts-grid{grid-template-columns:1fr;}
+    .cm-fields{grid-template-columns:1fr;}
+    .filters input{width:100%;}
+    .filters select{flex:1 1 140px;}
+    .kpi-grid{grid-template-columns:repeat(auto-fit, minmax(140px,1fr));}
+    .riepilogo-detail-row{gap:6px;}
+    .rd-fine{margin-left:0;}
+    th, td{white-space:nowrap;}
+  }
   .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:20px;}
   .kpi{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:16px;}
   .kpi .label{font-size:13px; color:var(--text-secondary); margin-bottom:6px;}
@@ -115,7 +128,7 @@
   .b-pt-federica{background:#fcebeb; color:#791f1f;}
   .b-pt-gianmiki{background:#e2e6ec; color:#37424f;}
   .b-pt-marco{background:#fbe3d3; color:#8a3c0a;}
-  .table-wrap{max-height:520px; overflow-y:auto; border-radius:8px;}
+  .table-wrap{max-height:520px; overflow-y:auto; overflow-x:auto; border-radius:8px; -webkit-overflow-scrolling:touch;}
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
   .client-row{cursor:pointer;}
