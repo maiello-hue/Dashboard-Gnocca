@@ -153,13 +153,10 @@
     <div class="sidebar">
       <div class="side-label">Navigazione</div>
       <button class="side-btn active" data-nav="dashboard"><i class="fa-solid fa-house"></i>Dashboard</button>
+      <button class="side-btn" data-nav="clienti"><i class="fa-solid fa-users"></i>Clienti</button>
+      <button class="side-btn" data-nav="no_tutor"><i class="fa-solid fa-user-group"></i>No Tutor <span class="side-count" data-dataset="no_tutor">(52)</span></button>
       <button class="side-btn" data-nav="analisi"><i class="fa-solid fa-chart-column"></i>Analisi Dati</button>
       <button class="side-btn" data-nav="scadenze"><i class="fa-solid fa-clock"></i>Gestione Scadenze</button>
-      <div class="side-divider"></div>
-      <div class="side-label">Clienti</div>
-      <button class="side-btn" data-nav="clienti:gnocca"><i class="fa-solid fa-users"></i>Gnocca <span class="side-count" data-dataset="gnocca">(196)</span></button>
-      <button class="side-btn" data-nav="clienti:no_tutor"><i class="fa-solid fa-user-group"></i>No Tutor <span class="side-count" data-dataset="no_tutor">(52)</span></button>
-      <button class="side-btn" data-nav="clienti:disattivate"><i class="fa-solid fa-user-slash"></i>Disattivate <span class="side-count" data-dataset="disattivate">(39)</span></button>
     </div>
 
     <div class="main-content">
@@ -168,9 +165,16 @@
       </div>
 
       <div id="section-clienti" class="app-section">
+        <div class="pill-tabs">
+          <button class="pill-btn active" data-dataset="gnocca">Gnocca (196)</button>
+          <button class="pill-btn" data-dataset="disattivate">Disattivate (39)</button>
+        </div>
         <div id="clienti-gnocca" class="dataset-panel active"></div>
-        <div id="clienti-no_tutor" class="dataset-panel"></div>
         <div id="clienti-disattivate" class="dataset-panel"></div>
+      </div>
+
+      <div id="section-no_tutor" class="app-section">
+        <div id="clienti-no_tutor" class="dataset-panel active"></div>
       </div>
 
       <div id="section-analisi" class="app-section">
@@ -285,14 +289,15 @@ function rerenderDataset(key){
     if(key==='no_tutor') renderNoTutorAnalisi();
     if(key==='disattivate') renderDisattivateAnalisi();
   }
-  if(renderedViews['clienti_'+key]){
+  if(key==='no_tutor'){
+    if(typeof sectionInitialized!=='undefined' && sectionInitialized.no_tutor) renderNoTutorClienti();
+  } else if(renderedViews['clienti_'+key]){
     if(key==='gnocca') renderGnoccaClienti();
-    if(key==='no_tutor') renderNoTutorClienti();
     if(key==='disattivate') renderDisattivateClienti();
   }
   if(key==='gnocca'){
     renderRiepilogoGlobale();
-    if(sectionInitialized.scadenze) renderScadenze();
+    if(typeof sectionInitialized!=='undefined' && sectionInitialized.scadenze) renderScadenze();
   }
 }
 
@@ -1266,15 +1271,16 @@ function showDataset(section, dataset){
   });
 }
 
-const sectionInitialized = {analisi:false, scadenze:false};
-function navigateTo(section, dataset){
+const sectionInitialized = {clienti:false, no_tutor:false, analisi:false, scadenze:false};
+function navigateTo(section){
   document.querySelectorAll('.side-btn[data-nav]').forEach(b=>{
-    const active = dataset ? (b.dataset.nav===section+':'+dataset) : (b.dataset.nav===section);
-    b.classList.toggle('active', active);
+    b.classList.toggle('active', b.dataset.nav===section);
   });
   document.querySelectorAll('.app-section').forEach(s=>s.classList.toggle('active', s.id==='section-'+section));
-  if(section==='clienti'){
-    showDataset('clienti', dataset);
+  if(section==='clienti' && !sectionInitialized.clienti){
+    showDataset('clienti', 'gnocca'); sectionInitialized.clienti=true;
+  } else if(section==='no_tutor' && !sectionInitialized.no_tutor){
+    renderNoTutorClienti(); sectionInitialized.no_tutor=true;
   } else if(section==='analisi' && !sectionInitialized.analisi){
     showDataset('analisi','gnocca'); sectionInitialized.analisi=true;
   } else if(section==='scadenze' && !sectionInitialized.scadenze){
@@ -1283,10 +1289,10 @@ function navigateTo(section, dataset){
 }
 
 document.querySelectorAll('.side-btn[data-nav]').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    const parts = b.dataset.nav.split(':');
-    navigateTo(parts[0], parts[1]);
-  });
+  b.addEventListener('click', ()=>navigateTo(b.dataset.nav));
+});
+document.querySelectorAll('#section-clienti .pill-btn').forEach(b=>{
+  b.addEventListener('click', ()=>showDataset('clienti', b.dataset.dataset));
 });
 document.querySelectorAll('#section-analisi .pill-btn').forEach(b=>{
   b.addEventListener('click', ()=>showDataset('analisi', b.dataset.dataset));
