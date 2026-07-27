@@ -1015,8 +1015,6 @@ function renderNoTutorClienti(){
             <th data-key="percorso">Percorso</th>
             <th data-key="inizio">Inizio</th>
             <th data-key="fine">Fine</th>
-            <th data-key="pagamento">Pagamento</th>
-            <th data-key="importo">Importo</th>
             <th data-key="venditore">Venditore</th>
             <th data-key="trainer">Trainer</th>
             <th data-key="nutrizionista">Nutrizionista</th>
@@ -1038,7 +1036,13 @@ function renderNoTutorClienti(){
     const editBtn = e.target.closest('.btn-edit-client');
     if(editBtn){ openClientModal(editBtn.dataset.dataset, editBtn.dataset.id); return; }
     const delBtn = e.target.closest('.btn-delete-client');
-    if(delBtn){ deleteClient(delBtn.dataset.dataset, delBtn.dataset.id); }
+    if(delBtn){ deleteClient(delBtn.dataset.dataset, delBtn.dataset.id); return; }
+    const row = e.target.closest('.client-row');
+    if(!row) return;
+    const detail = row.nextElementSibling;
+    if(detail && detail.classList.contains('client-detail')){
+      detail.style.display = detail.style.display==='none' ? 'table-row' : 'none';
+    }
   });
 
   let sort = {key:'inizio', dir:1};
@@ -1065,20 +1069,26 @@ function renderNoTutorClienti(){
     });
     document.getElementById('nt-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('nt-tbody').innerHTML = rows.map(d=>`
-      <tr>
+      <tr class="client-row">
         <td>${d.cliente}</td>
         <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
         <td>${d.percorso}</td>
         <td>${d.inizio}</td>
         <td>${d.fine}</td>
-        <td>${d.pagamento}</td>
-        <td>${fmtEUR(d.importo)}</td>
         <td>${venditoreHtml(d.venditore)}</td>
-        <td>${dispVal(d.trainer)}</td>
+        <td>${ptExtraHtml(d.trainer)}</td>
         <td>${nutriHtml(d.nutrizionista)}</td>
         <td class="azioni-cell">
           <button type="button" class="btn-icon btn-edit-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-pen"></i></button>
           <button type="button" class="btn-icon btn-delete-client" data-dataset="no_tutor" data-id="${clientDocId(d)}"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+      <tr class="client-detail" style="display:none;">
+        <td colspan="9">
+          <div class="detail-box">
+            <span><i class="fa-solid fa-credit-card"></i>${d.pagamento || 'Pagamento non disponibile'}</span>
+            <span><i class="fa-solid fa-coins"></i>${fmtEUR(d.importo)}</span>
+          </div>
         </td>
       </tr>`).join('');
   }
