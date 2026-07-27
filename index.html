@@ -60,7 +60,6 @@
     .kpi-grid{grid-template-columns:repeat(auto-fit, minmax(140px,1fr));}
     .riepilogo-detail-row{gap:6px;}
     .rd-fine{margin-left:0;}
-    th, td{white-space:nowrap;}
     .panel{padding:14px;}
     .pill-tabs{gap:6px;}
     .pill-btn{padding:7px 12px; font-size:12px;}
@@ -73,6 +72,17 @@
     .detail-box{gap:12px;}
     .detail-actions{width:100%; justify-content:flex-start;}
     .modal-box{padding:16px;}
+    .table-wrap{overflow-x:visible; max-height:none;}
+    .table-wrap table{display:block; width:100%;}
+    .table-wrap thead{display:none;}
+    .table-wrap tbody{display:block; width:100%;}
+    .table-wrap tr.client-row{display:block; background:var(--surface); border:0.5px solid var(--border); border-radius:12px; margin-bottom:10px; padding:2px 0;}
+    .table-wrap tr.client-row td{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 12px; border-bottom:0.5px dashed var(--border); white-space:normal; text-align:right;}
+    .table-wrap tr.client-row td:last-child{border-bottom:none;}
+    .table-wrap tr.client-row td::before{content:attr(data-label); font-size:11px; font-weight:500; color:var(--text-muted); text-align:left; flex-shrink:0;}
+    .table-wrap tr.client-detail{margin:-6px 0 10px;}
+    .table-wrap tr.client-detail.open{display:block;}
+    .table-wrap tr.client-detail td{display:block; border-radius:0 0 12px 12px;}
   }
   .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:20px;}
   .kpi{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:16px;}
@@ -144,6 +154,8 @@
   .count-tag{font-size:12px; color:var(--text-muted); margin-bottom:8px;}
   .note-cell{max-width:260px; white-space:normal;}
   .client-row{cursor:pointer;}
+  .client-detail{display:none;}
+  .client-detail.open{display:table-row;}
   .client-detail td{background:var(--surface-2); padding:12px 14px;}
   .detail-box{display:flex; flex-wrap:wrap; align-items:center; gap:24px; font-size:13px; color:var(--text-secondary);}
   .detail-box i{margin-right:6px; color:var(--text-muted);}
@@ -750,7 +762,7 @@ function renderGnoccaClienti(){
     if(!row) return;
     const detail = row.nextElementSibling;
     if(detail && detail.classList.contains('client-detail')){
-      detail.style.display = detail.style.display==='none' ? 'table-row' : 'none';
+      detail.classList.toggle('open');
     }
   });
 
@@ -777,16 +789,16 @@ function renderGnoccaClienti(){
     document.getElementById('g-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('g-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
-        <td>${d.cliente}</td>
-        <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
-        <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
-        <td>${d.inizio}</td>
-        <td><span class="badge ${situazioneBadgeClass(d.situazione)}">${dispVal(d.situazione)}</span></td>
-        <td>${nutriHtml(d.nutrizione)}</td>
-        <td>${ptExtraHtml(d.pt_extra)}</td>
-        <td>${venditoreHtml(d.venditore)}</td>
+        <td data-label="Cliente">${d.cliente}</td>
+        <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
+        <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
+        <td data-label="Inizio">${d.inizio}</td>
+        <td data-label="Attivita"><span class="badge ${situazioneBadgeClass(d.situazione)}">${dispVal(d.situazione)}</span></td>
+        <td data-label="Nutrizione">${nutriHtml(d.nutrizione)}</td>
+        <td data-label="PT extra">${ptExtraHtml(d.pt_extra)}</td>
+        <td data-label="Venditore">${venditoreHtml(d.venditore)}</td>
       </tr>
-      <tr class="client-detail" style="display:none;">
+      <tr class="client-detail">
         <td colspan="8">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
@@ -1067,7 +1079,7 @@ function renderNoTutorClienti(){
     if(!row) return;
     const detail = row.nextElementSibling;
     if(detail && detail.classList.contains('client-detail')){
-      detail.style.display = detail.style.display==='none' ? 'table-row' : 'none';
+      detail.classList.toggle('open');
     }
   });
 
@@ -1096,16 +1108,16 @@ function renderNoTutorClienti(){
     document.getElementById('nt-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('nt-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
-        <td>${d.cliente}</td>
-        <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
-        <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
-        <td>${d.inizio}</td>
-        <td>${d.fine}</td>
-        <td>${venditoreHtml(d.venditore)}</td>
-        <td>${ptExtraHtml(d.trainer)}</td>
-        <td>${nutriHtml(d.nutrizionista)}</td>
+        <td data-label="Cliente">${d.cliente}</td>
+        <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
+        <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
+        <td data-label="Inizio">${d.inizio}</td>
+        <td data-label="Fine">${d.fine}</td>
+        <td data-label="Venditore">${venditoreHtml(d.venditore)}</td>
+        <td data-label="Trainer">${ptExtraHtml(d.trainer)}</td>
+        <td data-label="Nutrizionista">${nutriHtml(d.nutrizionista)}</td>
       </tr>
-      <tr class="client-detail" style="display:none;">
+      <tr class="client-detail">
         <td colspan="8">
           <div class="detail-box">
             <span><i class="fa-solid fa-credit-card"></i>${d.pagamento || 'Pagamento non disponibile'}</span>
@@ -1235,7 +1247,7 @@ function renderDisattivateClienti(){
     if(!row) return;
     const detail = row.nextElementSibling;
     if(detail && detail.classList.contains('client-detail')){
-      detail.style.display = detail.style.display==='none' ? 'table-row' : 'none';
+      detail.classList.toggle('open');
     }
   });
 
@@ -1260,14 +1272,14 @@ function renderDisattivateClienti(){
     document.getElementById('d-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('d-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
-        <td>${d.cliente}</td>
-        <td><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
-        <td><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
-        <td>${d.inizio}</td>
-        <td>${d.fine}</td>
-        <td>${venditoreHtml(d.venditore)}</td>
+        <td data-label="Cliente">${d.cliente}</td>
+        <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${d.stato}</span></td>
+        <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${d.percorso}</span></td>
+        <td data-label="Inizio">${d.inizio}</td>
+        <td data-label="Fine">${d.fine}</td>
+        <td data-label="Venditore">${venditoreHtml(d.venditore)}</td>
       </tr>
-      <tr class="client-detail" style="display:none;">
+      <tr class="client-detail">
         <td colspan="6">
           <div class="detail-box">
             <span><i class="fa-solid fa-envelope"></i>${d.email || 'Email non disponibile'}</span>
