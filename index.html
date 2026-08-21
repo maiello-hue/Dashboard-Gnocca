@@ -346,7 +346,19 @@
     <div class="main-content">
       <div id="section-dashboard" class="app-section active">
         <div class="kpi-grid" id="riepilogo-globale"></div>
+        <div class="panel scadenze-mini-panel">
+          <div class="riepilogo-detail-head">
+            <h2><i class="fa-solid fa-clock"></i> Prossime scadenze (30gg)</h2>
+            <button type="button" class="btn-icon" id="scadenze-mini-vedi-tutte"><i class="fa-solid fa-arrow-right"></i>Vedi tutte</button>
+          </div>
+          <div class="riepilogo-detail-list" id="scadenze-mini-list"></div>
+        </div>
         <div id="riepilogo-detail" style="display:none;"></div>
+        <div class="panel dash-trend-panel">
+          <h2>Andamento clienti (ultimi 6 mesi)</h2>
+          <p class="desc">Nuovi ingressi vs abbandoni, per mese</p>
+          <div class="chart-box" style="height:260px;"><canvas id="dash-chart-trend" role="img" aria-label="Grafico a barre di nuovi ingressi e abbandoni per mese">Andamento clienti</canvas></div>
+        </div>
       </div>
 
       <div id="section-clienti" class="app-section">
@@ -1879,17 +1891,22 @@ function riepilogoInScadenza(g, today){
 }
 function computeCardClients(filter){
   const g = RAW.gnocca;
-  const today = new Date(); today.setHours(0,0,0,0);
   if(filter==='') return g;
-  if(filter==='SCADENZA') return riepilogoInScadenza(g, today);
   return g.filter(x=>x.stato===filter);
+}
+function riepilogoRowHtml(d, extra){
+  return `<div class="riepilogo-detail-row">
+    <span class="rd-nome">${escHtml(d.cliente)}</span>
+    <span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span>
+    <span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span>
+    <span class="rd-fine">${escHtml(extra)}</span>
+  </div>`;
 }
 let openDetailFilter = null;
 let openDetailLabel = '';
 function renderRiepilogoDetail(){
   const panel = document.getElementById('riepilogo-detail');
   if(openDetailFilter===null){ panel.style.display='none'; panel.innerHTML=''; return; }
-  const today = new Date(); today.setHours(0,0,0,0);
   const clients = computeCardClients(openDetailFilter).slice().sort((a,b)=>(parseDate(a.fine)||0)-(parseDate(b.fine)||0));
   panel.innerHTML = `
     <div class="panel riepilogo-detail-panel">
@@ -1898,19 +1915,7 @@ function renderRiepilogoDetail(){
         <button type="button" class="btn-icon" id="riepilogo-detail-close"><i class="fa-solid fa-xmark"></i>Chiudi</button>
       </div>
       <div class="riepilogo-detail-list">
-        ${clients.length ? clients.map(d=>{
-          let extra = d.fine || '';
-          if(openDetailFilter==='SCADENZA' && d.fine){
-            const {label} = contattiGgInfo(parseDate(d.fine), today);
-            extra = `${d.fine} · ${label}`;
-          }
-          return `<div class="riepilogo-detail-row">
-            <span class="rd-nome">${escHtml(d.cliente)}</span>
-            <span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span>
-            <span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span>
-            <span class="rd-fine">${escHtml(extra)}</span>
-          </div>`;
-        }).join('') : emptyStateHtml('fa-circle-check', 'Nessun cliente in questa categoria.')}
+        ${clients.length ? clients.map(d=>riepilogoRowHtml(d, d.fine || '')).join('') : emptyStateHtml('fa-circle-check', 'Nessun cliente in questa categoria.')}
       </div>
     </div>
   `;
@@ -1923,9 +1928,68 @@ function closeRiepilogoDetail(){
   renderRiepilogoDetail();
   document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.remove('kpi-open'));
 }
+function renderScadenzeMini(){
+  const list = document.getElementById('scadenze-mini-list');
+  if(!list) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const items = riepilogoInScadenza(RAW.gnocca, today).slice().sort((a,b)=>(parseDate(a.fine)||0)-(parseDate(b.fine)||0));
+  list.innerHTML = items.length
+    ? items.map(d=>{
+        const {label} = contattiGgInfo(parseDate(d.fine), today);
+        return riepilogoRowHtml(d, `${d.fine} · ${label}`);
+      }).join('')
+    : emptyStateHtml('fa-circle-check', 'Nessuna scadenza nei prossimi 30 giorni.');
+}
+function renderDashboardTrendChart(){
+  const canvas = document.getElementById('dash-chart-trend');
+  if(!canvas) return;
+  const monthsBack = 6;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const months = [];
+  for(let i=monthsBack-1;i>=0;i--){
+    const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+    months.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label:d.toLocaleDateString('it-IT',{month:'short', year:'numeric'})});
+  }
+  const monthIndex = {};
+  months.forEach((m,i)=>{ monthIndex[m.key] = i; });
+
+  const ingressiArr = new Array(months.length).fill(0);
+  const abbandoniArr = new Array(months.length).fill(0);
+
+  [...RAW.gnocca, ...RAW.disattivate].forEach(c=>{
+    const dt = parseDate(c.inizio);
+    if(!dt) return;
+    const k = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+    if(monthIndex[k]!==undefined) ingressiArr[monthIndex[k]]++;
+  });
+  RAW.disattivate.forEach(c=>{
+    const dt = parseDate(c.fine) || parseDate(c.inizio);
+    if(!dt) return;
+    const k = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+    if(monthIndex[k]!==undefined) abbandoniArr[monthIndex[k]]++;
+  });
+
+  makeChart('dash-chart-trend', {
+    type:'bar',
+    data:{
+      labels: months.map(m=>m.label),
+      datasets:[
+        {label:'Nuovi ingressi', data:ingressiArr, backgroundColor:COLORS.green, borderRadius:4, maxBarThickness:28},
+        {label:'Abbandoni', data:abbandoniArr, backgroundColor:COLORS.red, borderRadius:4, maxBarThickness:28},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true, position:'top', align:'end', labels:{boxWidth:10, usePointStyle:true, pointStyle:'circle', font:{size:12}}}},
+      scales:{
+        y:{beginAtZero:true, ticks:{stepSize:1, precision:0}, grid:{color:'#e4e3dd'}},
+        x:{grid:{display:false}}
+      }
+    }
+  });
+}
 function renderRiepilogoGlobale(){
   const g = RAW.gnocca;
-  const today = new Date(); today.setHours(0,0,0,0);
 
   const totaleClienti = g.length;
   const inPercorso = g.filter(x=>x.stato==='IN PERCORSO').length;
@@ -1933,7 +1997,6 @@ function renderRiepilogoGlobale(){
   const abbandonate = g.filter(x=>x.stato==='ABBANDONO').length;
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
   const nonRinnovo = g.filter(x=>x.stato==='NON RINNOVO').length;
-  const inScadenza = riepilogoInScadenza(g, today);
 
   const cards = [
     {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a', filter:''},
@@ -1942,10 +2005,11 @@ function renderRiepilogoGlobale(){
     {label:'Abbandonate', value: abbandonate, bg:'#fcebeb', color:'#791f1f', filter:'ABBANDONO'},
     {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806', filter:'SPARITA'},
     {label:'Non rinnovo', value: nonRinnovo, bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
-    {label:'In scadenza 30gg', value: inScadenza.length, bg:'#ffffff', color:'#18181a', filter:'SCADENZA'},
   ];
   document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(k.label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
   renderRiepilogoDetail();
+  renderScadenzeMini();
+  renderDashboardTrendChart();
 }
 contattiListeners.push(()=>renderRiepilogoGlobale());
 renderRiepilogoGlobale();
@@ -1959,6 +2023,7 @@ document.getElementById('riepilogo-globale').addEventListener('click', (e)=>{
   renderRiepilogoDetail();
   document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.toggle('kpi-open', c.dataset.filter===filter));
 });
+document.getElementById('scadenze-mini-vedi-tutte').addEventListener('click', ()=>navigateTo('scadenze'));
 
 // ================= NAVIGAZIONE =================
 const renderedViews = {};
