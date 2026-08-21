@@ -33,7 +33,7 @@
     background:var(--bg); color:var(--text); padding:24px; overflow-x:hidden;
     transition:background 0.2s ease, color 0.2s ease;
   }
-  .wrap{max-width:1280px; margin:0 auto;}
+  .wrap{max-width:1600px; margin:0 auto;}
   h1{font-size:22px; font-weight:500; margin:0 0 4px;}
   .title-row{display:flex; align-items:center; gap:12px; margin-bottom:24px;}
   .title-row h1{margin:0 0 4px;}
@@ -84,6 +84,8 @@
     .contatto-row{align-items:center; gap:6px; background:var(--surface); border:0.5px solid var(--border); border-bottom:0.5px solid var(--border); border-radius:12px; margin-bottom:8px; padding:10px 12px;}
     .contatto-row:last-child{margin-bottom:0;}
     .cr-info{min-width:0; width:100%; flex-basis:100%;}
+    .cr-nome{flex:0 0 auto; width:auto; max-width:100%; white-space:normal;}
+    .cr-badge-stato, .cr-badge-percorso{flex:0 0 auto; width:auto;}
     .cr-date{flex-direction:row; align-items:center; justify-content:space-between; min-width:0; width:100%; flex-basis:100%;}
     .cr-select{flex:1 1 45%; width:auto; min-width:0;}
     .cr-note{flex:1 1 45%; width:auto; min-width:0;}
@@ -209,7 +211,9 @@
   .contatto-row{display:flex; align-items:center; gap:14px; padding:10px 4px; border-bottom:0.5px solid var(--border); flex-wrap:wrap;}
   .contatto-row:last-child{border-bottom:none;}
   .cr-info{flex:1 1 260px; min-width:220px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-  .cr-nome{font-weight:500; font-size:14px;}
+  .cr-nome{font-weight:500; font-size:14px; flex:0 0 180px; width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cr-badge-stato{flex:0 0 100px; width:100px; text-align:center;}
+  .cr-badge-percorso{flex:0 0 110px; width:110px; text-align:center;}
   .cr-meta{font-size:12px; color:var(--text-secondary);}
   .cr-date{display:flex; flex-direction:column; align-items:flex-end; min-width:100px; font-size:12px; color:var(--text-secondary);}
   .cr-gg{font-weight:500; font-size:12px;}
@@ -1440,9 +1444,9 @@ function renderContattiList(data){
       return `
         <div class="contatto-row" data-id="${id}">
           <div class="cr-info">
-            <span class="cr-nome">${escHtml(d.cliente)}</span>
-            <span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span>
-            <span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span>
+            <span class="cr-nome" title="${escAttr(d.cliente)}">${escHtml(d.cliente)}</span>
+            <span class="badge cr-badge-stato ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span>
+            <span class="badge cr-badge-percorso ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span>
           </div>
           <div class="cr-date">
             <span class="cr-data">${escHtml(d.fine)}</span>
