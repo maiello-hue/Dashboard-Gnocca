@@ -201,6 +201,8 @@
   .btn-add{display:inline-flex; align-items:center; gap:6px; background:var(--text); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; margin-bottom:12px;}
   .btn-add:hover{opacity:0.88;}
   .btn-export{display:inline-flex; align-items:center; gap:6px; margin-left:8px; margin-bottom:12px;}
+  .btn-icon-add{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:none; background:var(--text); color:#fff; font-size:14px; cursor:pointer; flex-shrink:0;}
+  .btn-icon-add:hover{opacity:0.88;}
   .detail-actions{display:flex; gap:8px; margin-left:auto;}
   .btn-icon{display:inline-flex; align-items:center; gap:6px; background:none; border:0.5px solid var(--border-strong); border-radius:8px; padding:6px 10px; font-size:12px; color:var(--text-secondary); cursor:pointer;}
   .btn-icon:hover{background:var(--surface); color:var(--text);}
@@ -666,7 +668,22 @@ function renderImpostazioni(){
         </div>`;
       })()}
     </div>
+    <div class="panel" style="margin-top:16px;">
+      <h2>Esportazione dati</h2>
+      <p class="desc">Scarica l'elenco completo di ciascuna scheda in formato CSV.</p>
+      <div style="display:flex; flex-wrap:wrap; gap:10px;">
+        <button type="button" class="btn-secondary" data-export="gnocca"><i class="fa-solid fa-file-csv"></i> Gnocca</button>
+        <button type="button" class="btn-secondary" data-export="no_tutor"><i class="fa-solid fa-file-csv"></i> No Tutor</button>
+        <button type="button" class="btn-secondary" data-export="disattivate"><i class="fa-solid fa-file-csv"></i> Disattivate</button>
+      </div>
+    </div>
   `;
+  el.querySelectorAll('[data-export]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.export;
+      downloadCSV(CSV_FILENAMES[key], RAW[key], CSV_COLUMNS[key]);
+    });
+  });
   el.querySelectorAll('.btn-restore-client').forEach(btn=>{
     btn.addEventListener('click', ()=>restoreClient(btn.dataset.dataset, btn.dataset.id));
   });
@@ -778,6 +795,28 @@ function downloadCSV(filename, rows, columns){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+const CSV_COLUMNS = {
+  gnocca: [
+    {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
+    {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Attivita', key:'situazione'},
+    {label:'Email', key:'email'}, {label:'Telefono', key:'telefono'}, {label:'Pagamento', key:'pagamento'},
+    {label:'Importo', key:'importo'}, {label:'Nutrizione', key:'nutrizione'}, {label:'PT extra', key:'pt_extra'},
+    {label:'Venditore', key:'venditore'},
+  ],
+  no_tutor: [
+    {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
+    {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Pagamento', key:'pagamento'},
+    {label:'Importo', key:'importo'}, {label:'Venditore', key:'venditore'}, {label:'Trainer', key:'trainer'},
+    {label:'Nutrizionista', key:'nutrizionista'},
+  ],
+  disattivate: [
+    {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
+    {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Email', key:'email'},
+    {label:'Telefono', key:'telefono'}, {label:'Pagamento', key:'pagamento'}, {label:'Importo', key:'importo'},
+    {label:'Nutrizione', key:'nutrizione'}, {label:'Venditore', key:'venditore'},
+  ],
+};
+const CSV_FILENAMES = {gnocca:'gnocca_clienti.csv', no_tutor:'no_tutor_clienti.csv', disattivate:'disattivate_clienti.csv'};
 function itToIsoDate(it){
   if(!it) return '';
   const parts = it.split('/');
@@ -1114,9 +1153,8 @@ function renderGnoccaClienti(){
   el.innerHTML = `
     <div class="panel">
       <h2>Elenco clienti</h2>
-      <button type="button" class="btn-add" id="g-add-btn"><i class="fa-solid fa-plus"></i>Aggiungi cliente</button>
-      <button type="button" class="btn-secondary btn-export" id="g-export-btn"><i class="fa-solid fa-file-csv"></i> Esporta CSV</button>
       <div class="filters">
+        <button type="button" class="btn-icon-add" id="g-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="g-search" placeholder="Cerca cliente...">
         <select id="g-stato"><option value="">Tutti gli stati</option></select>
         <select id="g-situ"><option value="">Tutte le attivita</option></select>
@@ -1162,16 +1200,6 @@ function renderGnoccaClienti(){
   });
 
   let sort = {key:'inizio', dir:1};
-  let currentRows = data;
-  document.getElementById('g-export-btn').addEventListener('click', ()=>{
-    downloadCSV('gnocca_clienti.csv', currentRows, [
-      {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
-      {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Attivita', key:'situazione'},
-      {label:'Email', key:'email'}, {label:'Telefono', key:'telefono'}, {label:'Pagamento', key:'pagamento'},
-      {label:'Importo', key:'importo'}, {label:'Nutrizione', key:'nutrizione'}, {label:'PT extra', key:'pt_extra'},
-      {label:'Venditore', key:'venditore'},
-    ]);
-  });
   function renderTable(){
     const search = document.getElementById('g-search').value.toLowerCase();
     const fStato = document.getElementById('g-stato').value;
@@ -1191,7 +1219,6 @@ function renderGnoccaClienti(){
       if(sort.key==='inizio'){ va=parseDate(va)||0; vb=parseDate(vb)||0; }
       if(va<vb) return -1*sort.dir; if(va>vb) return 1*sort.dir; return 0;
     });
-    currentRows = rows;
     document.getElementById('g-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('g-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
@@ -1442,9 +1469,8 @@ function renderNoTutorClienti(){
   el.innerHTML = `
     <div class="panel">
       <h2>Elenco clienti</h2>
-      <button type="button" class="btn-add" id="nt-add-btn"><i class="fa-solid fa-plus"></i>Aggiungi cliente</button>
-      <button type="button" class="btn-secondary btn-export" id="nt-export-btn"><i class="fa-solid fa-file-csv"></i> Esporta CSV</button>
       <div class="filters">
+        <button type="button" class="btn-icon-add" id="nt-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="nt-search" placeholder="Cerca cliente...">
         <select id="nt-stato"><option value="">Tutti gli stati</option></select>
         <select id="nt-venditore"><option value="">Tutti i venditori</option></select>
@@ -1491,15 +1517,6 @@ function renderNoTutorClienti(){
   });
 
   let sort = {key:'inizio', dir:1};
-  let currentRows = data;
-  document.getElementById('nt-export-btn').addEventListener('click', ()=>{
-    downloadCSV('no_tutor_clienti.csv', currentRows, [
-      {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
-      {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Pagamento', key:'pagamento'},
-      {label:'Importo', key:'importo'}, {label:'Venditore', key:'venditore'}, {label:'Trainer', key:'trainer'},
-      {label:'Nutrizionista', key:'nutrizionista'},
-    ]);
-  });
   function renderTable(){
     const search = document.getElementById('nt-search').value.toLowerCase();
     const fStato = document.getElementById('nt-stato').value;
@@ -1521,7 +1538,6 @@ function renderNoTutorClienti(){
       if(sort.key==='inizio'||sort.key==='fine'){ va=parseDate(va)||0; vb=parseDate(vb)||0; }
       if(va<vb) return -1*sort.dir; if(va>vb) return 1*sort.dir; return 0;
     });
-    currentRows = rows;
     document.getElementById('nt-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('nt-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
@@ -1626,9 +1642,8 @@ function renderDisattivateClienti(){
   el.innerHTML = `
     <div class="panel">
       <h2>Elenco clienti disattivati</h2>
-      <button type="button" class="btn-add" id="d-add-btn"><i class="fa-solid fa-plus"></i>Aggiungi cliente</button>
-      <button type="button" class="btn-secondary btn-export" id="d-export-btn"><i class="fa-solid fa-file-csv"></i> Esporta CSV</button>
       <div class="filters">
+        <button type="button" class="btn-icon-add" id="d-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="d-search" placeholder="Cerca cliente...">
         <select id="d-percorso"><option value="">Tutti i percorsi</option></select>
         <select id="d-venditore"><option value="">Tutti i venditori</option></select>
@@ -1670,15 +1685,6 @@ function renderDisattivateClienti(){
   });
 
   let sort = {key:'inizio', dir:1};
-  let currentRows = data;
-  document.getElementById('d-export-btn').addEventListener('click', ()=>{
-    downloadCSV('disattivate_clienti.csv', currentRows, [
-      {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
-      {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Email', key:'email'},
-      {label:'Telefono', key:'telefono'}, {label:'Pagamento', key:'pagamento'}, {label:'Importo', key:'importo'},
-      {label:'Nutrizione', key:'nutrizione'}, {label:'Venditore', key:'venditore'},
-    ]);
-  });
   function renderTable(){
     const search = document.getElementById('d-search').value.toLowerCase();
     const fPerc = document.getElementById('d-percorso').value;
@@ -1696,7 +1702,6 @@ function renderDisattivateClienti(){
       if(sort.key==='inizio'||sort.key==='fine'){ va=parseDate(va)||0; vb=parseDate(vb)||0; }
       if(va<vb) return -1*sort.dir; if(va>vb) return 1*sort.dir; return 0;
     });
-    currentRows = rows;
     document.getElementById('d-count').textContent = `${rows.length} clienti su ${data.length}`;
     document.getElementById('d-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
