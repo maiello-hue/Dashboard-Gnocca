@@ -1251,19 +1251,6 @@ function renderGnoccaAnalisi(){
       </div>
       <div class="chart-box" style="height:260px;"><canvas id="g-chart-andamento" role="img" aria-label="Grafico a barre di nuovi ingressi e abbandoni per mese">Andamento clienti</canvas></div>
     </div>
-    <div class="charts-grid">
-      <div class="panel">
-        <h2>Incasso per venditore</h2>
-        <p class="desc">Totale importi generati</p>
-        <div class="chart-box" style="height:300px;"><canvas id="g-chart-venditore" role="img" aria-label="Grafico a barre orizzontali dell'incasso per venditore">Incasso per venditore</canvas></div>
-      </div>
-      <div class="panel">
-        <h2>Metodo di pagamento</h2>
-        <p class="desc">Distribuzione incassi per metodo</p>
-        <div id="g-legend-pag" class="legend"></div>
-        <div class="chart-box"><canvas id="g-chart-pag" role="img" aria-label="Grafico a ciambella dei metodi di pagamento">Metodi di pagamento</canvas></div>
-      </div>
-    </div>
   `;
 
   const totClienti = data.length;
@@ -1286,16 +1273,7 @@ function renderGnoccaAnalisi(){
   renderLegend(document.getElementById('g-legend-situ'), Object.keys(situM), Object.values(situM), situColors, false);
   makeChart('g-chart-situ', {type:'doughnut', data:{labels:Object.keys(situM), datasets:[{data:Object.values(situM), backgroundColor:situColors, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
-  const pagM = sumBy(data,'pagamento','importo');
-  const pagLabels = Object.keys(pagM); const pagValues = Object.values(pagM).map(v=>Math.round(v));
-  renderLegend(document.getElementById('g-legend-pag'), pagLabels, pagValues, palette, true);
-  makeChart('g-chart-pag', {type:'doughnut', data:{labels:pagLabels, datasets:[{data:pagValues, backgroundColor:palette, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
-
   renderGnoccaAndamentoChart();
-
-  const vendM = sumBy(data,'venditore','importo');
-  const vendEntries = Object.entries(vendM).sort((a,b)=>b[1]-a[1]);
-  makeChart('g-chart-venditore', {type:'bar', data:{labels:vendEntries.map(e=>e[0]), datasets:[{label:'Incasso', data:vendEntries.map(e=>Math.round(e[1])), backgroundColor:COLORS.aqua, borderRadius:4, maxBarThickness:22}]}, options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtEUR(c.parsed.x)}}}, scales:{x:{ticks:{callback:v=>fmtEUR(v)}, grid:{color:'#e4e3dd'}}, y:{grid:{display:false}}}}});
 }
 
 // ================= GNOCCA: CLIENTI (tabella) =================
