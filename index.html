@@ -1473,13 +1473,11 @@ function renderNoTutorClienti(){
     <div class="panel">
       <h2>Elenco clienti</h2>
       <div class="filters">
-        <button type="button" class="btn-icon-add" id="nt-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="nt-search" placeholder="Cerca cliente...">
         <div class="filter-select" data-label="Stato"><i class="fa-solid fa-list-check"></i><select id="nt-stato"><option value="">Stato</option></select><span class="filter-dot"></span></div>
-        <div class="filter-select" data-label="Venditore"><i class="fa-solid fa-tag"></i><select id="nt-venditore"><option value="">Venditore</option></select><span class="filter-dot"></span></div>
         <div class="filter-select" data-label="Trainer"><i class="fa-solid fa-dumbbell"></i><select id="nt-trainer"><option value="">Trainer</option></select><span class="filter-dot"></span></div>
         <div class="filter-select" data-label="Nutrizionista"><i class="fa-solid fa-apple-whole"></i><select id="nt-nutri"><option value="">Nutrizionista</option></select><span class="filter-dot"></span></div>
-        <div class="filter-select" data-label="Pagamento"><i class="fa-solid fa-credit-card"></i><select id="nt-pagamento"><option value="">Pagamento</option></select><span class="filter-dot"></span></div>
+        <button type="button" class="btn-icon-add" id="nt-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
       </div>
       <div class="count-tag" id="nt-count"></div>
       <div class="table-wrap">
@@ -1501,10 +1499,8 @@ function renderNoTutorClienti(){
   `;
 
   populateSelect('nt-stato', data, 'stato');
-  populateSelect('nt-venditore', data, 'venditore');
   populateSelect('nt-trainer', data, 'trainer');
   populateSelect('nt-nutri', data, 'nutrizionista');
-  populateSelect('nt-pagamento', data, 'pagamento');
   document.getElementById('nt-add-btn').addEventListener('click', ()=>openClientModal('no_tutor', null));
   document.getElementById('nt-tbody').addEventListener('click', (e)=>{
     const editBtn = e.target.closest('.btn-edit-client');
@@ -1523,18 +1519,14 @@ function renderNoTutorClienti(){
   function renderTable(){
     const search = document.getElementById('nt-search').value.toLowerCase();
     const fStato = document.getElementById('nt-stato').value;
-    const fVend = document.getElementById('nt-venditore').value;
     const fTrainer = document.getElementById('nt-trainer').value;
     const fNutri = document.getElementById('nt-nutri').value;
-    const fPag = document.getElementById('nt-pagamento').value;
-    ['nt-stato','nt-venditore','nt-trainer','nt-nutri','nt-pagamento'].forEach(id=>updateFilterIconState(document.getElementById(id)));
+    ['nt-stato','nt-trainer','nt-nutri'].forEach(id=>updateFilterIconState(document.getElementById(id)));
     let rows = data.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
       if(fStato && d.stato!==fStato) return false;
-      if(fVend && d.venditore!==fVend) return false;
       if(fTrainer && d.trainer!==fTrainer) return false;
       if(fNutri && d.nutrizionista!==fNutri) return false;
-      if(fPag && d.pagamento!==fPag) return false;
       return true;
     });
     rows.sort((a,b)=>{
@@ -1570,7 +1562,7 @@ function renderNoTutorClienti(){
   el.querySelectorAll('#nt-table th').forEach(th=>{
     th.addEventListener('click', ()=>{ const key=th.dataset.key; if(sort.key===key) sort.dir*=-1; else {sort.key=key; sort.dir=1;} renderTable(); });
   });
-  ['nt-search','nt-stato','nt-venditore','nt-trainer','nt-nutri','nt-pagamento'].forEach(id=>document.getElementById(id).addEventListener('input', renderTable));
+  ['nt-search','nt-stato','nt-trainer','nt-nutri'].forEach(id=>document.getElementById(id).addEventListener('input', renderTable));
   renderTable();
 }
 
