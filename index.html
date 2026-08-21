@@ -129,6 +129,7 @@
     background:var(--surface); color:var(--text); padding:0 10px; font-size:13px;
   }
   .filters input{width:200px;}
+  .filters input.filters-search-wide{width:340px; max-width:100%;}
   .filter-select{position:relative; display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; flex-shrink:0;}
   .filter-select select{
     width:34px !important; height:34px !important; padding:0 !important; margin:0; border-radius:8px;
@@ -1175,11 +1176,10 @@ function renderGnoccaClienti(){
     <div class="panel">
       <h2>Elenco clienti</h2>
       <div class="filters">
-        <button type="button" class="btn-icon-add" id="g-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
-        <input type="text" id="g-search" placeholder="Cerca cliente...">
+        <input type="text" id="g-search" class="filters-search-wide" placeholder="Cerca cliente...">
         <div class="filter-select" data-label="Stato"><i class="fa-solid fa-list-check"></i><select id="g-stato"><option value="">Stato</option></select><span class="filter-dot"></span></div>
         <div class="filter-select" data-label="Attivita"><i class="fa-solid fa-bolt"></i><select id="g-situ"><option value="">Attivita</option></select><span class="filter-dot"></span></div>
-        <div class="filter-select" data-label="Pagamento"><i class="fa-solid fa-credit-card"></i><select id="g-pagamento"><option value="">Pagamento</option></select><span class="filter-dot"></span></div>
+        <button type="button" class="btn-icon-add" id="g-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
       </div>
       <div class="count-tag" id="g-count"></div>
       <div class="table-wrap">
@@ -1202,7 +1202,6 @@ function renderGnoccaClienti(){
 
   populateSelect('g-stato', data, 'stato');
   populateSelect('g-situ', data, 'situazione');
-  populateSelect('g-pagamento', data, 'pagamento');
   document.getElementById('g-add-btn').addEventListener('click', ()=>openClientModal('gnocca', null));
 
   document.getElementById('g-tbody').addEventListener('click', (e)=>{
@@ -1223,13 +1222,11 @@ function renderGnoccaClienti(){
     const search = document.getElementById('g-search').value.toLowerCase();
     const fStato = document.getElementById('g-stato').value;
     const fSitu = document.getElementById('g-situ').value;
-    const fPag = document.getElementById('g-pagamento').value;
-    ['g-stato','g-situ','g-pagamento'].forEach(id=>updateFilterIconState(document.getElementById(id)));
+    ['g-stato','g-situ'].forEach(id=>updateFilterIconState(document.getElementById(id)));
     let rows = data.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
       if(fStato && d.stato!==fStato) return false;
       if(fSitu && d.situazione!==fSitu) return false;
-      if(fPag && d.pagamento!==fPag) return false;
       return true;
     });
     rows.sort((a,b)=>{
@@ -1267,7 +1264,7 @@ function renderGnoccaClienti(){
   el.querySelectorAll('#g-table th').forEach(th=>{
     th.addEventListener('click', ()=>{ const key=th.dataset.key; if(sort.key===key) sort.dir*=-1; else {sort.key=key; sort.dir=1;} renderTable(); });
   });
-  ['g-search','g-stato','g-situ','g-pagamento'].forEach(id=>document.getElementById(id).addEventListener('input', renderTable));
+  ['g-search','g-stato','g-situ'].forEach(id=>document.getElementById(id).addEventListener('input', renderTable));
   renderTable();
 }
 
