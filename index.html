@@ -107,7 +107,7 @@
   }
   .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:20px;}
   .kpi{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:16px;}
-  .kpi .label{font-size:13px; color:var(--text-secondary); margin-bottom:6px;}
+  .kpi .label{font-size:13px; color:var(--text-secondary); margin-bottom:6px; display:flex; align-items:center; gap:6px;}
   .kpi .value{font-size:24px; font-weight:500;}
   .kpi .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
   .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
@@ -2047,16 +2047,16 @@ function renderRiepilogoGlobale(){
   const nonRinnovoMese = clientsByStatoInMonth('NON RINNOVO', monthKey).length;
 
   const cards = [
-    {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a', filter:''},
-    {label:'In percorso', value: inPercorso, bg:'#eaf3de', color:'#27500a', filter:'IN PERCORSO'},
-    {label:'Congelate', value: congelate, bg:'#e6f1fb', color:'#0c447c', filter:'SOSPESA'},
-    {label:'Abbandonate', value: abbandonateMese, sub: monthSub, bg:'#fcebeb', color:'#791f1f', filter:'ABBANDONO'},
-    {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806', filter:'SPARITA'},
-    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
+    {label:'Clienti totali', value: totaleClienti, icon:'fa-users', bg:'#ffffff', color:'#18181a', filter:''},
+    {label:'In percorso', value: inPercorso, icon:'fa-route', bg:'#eaf3de', color:'#27500a', filter:'IN PERCORSO'},
+    {label:'Congelate', value: congelate, icon:'fa-snowflake', bg:'#e6f1fb', color:'#0c447c', filter:'SOSPESA'},
+    {label:'Abbandonate', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', bg:'#fcebeb', color:'#791f1f', filter:'ABBANDONO'},
+    {label:'Sparite', value: sparite, icon:'fa-ghost', bg:'#faeeda', color:'#633806', filter:'SPARITA'},
+    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
   ];
   document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>{
     const label = k.sub ? `${k.label} (${k.sub})` : k.label;
-    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div>${k.sub ? `<div class="sub" style="color:${k.color}; opacity:0.6;">${escHtml(k.sub)}</div>` : ''}</div>`;
+    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;"><i class="fa-solid ${k.icon}"></i>${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`;
   }).join('');
   renderRiepilogoDetail();
   renderScadenzeMini();
