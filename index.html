@@ -256,6 +256,8 @@
   .modal-overlay{animation:overlayFade 0.15s ease;}
   .modal-box{background:var(--surface); border-radius:14px; padding:22px; width:min(600px,100%); max-height:88vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.3); animation:modalPop 0.18s ease;}
   .modal-box h2{margin:0 0 14px; font-size:17px; font-weight:500;}
+  .cm-groups{display:flex; flex-direction:column; gap:18px;}
+  .cm-group-title{font-size:11px; font-weight:500; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em; margin:0 0 8px;}
   .cm-fields{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
   .cm-field{display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-secondary);}
   .cm-field.cm-wide{grid-column:1 / -1;}
@@ -435,7 +437,7 @@
 <div class="modal-overlay" id="client-modal-overlay">
   <div class="modal-box">
     <h2 id="cm-title">Nuovo cliente</h2>
-    <div class="cm-fields" id="cm-fields"></div>
+    <div class="cm-groups" id="cm-fields"></div>
     <div class="cm-actions">
       <button type="button" class="btn-secondary" id="cm-cancel">Annulla</button>
       <button type="button" class="btn-primary" id="cm-save">Salva</button>
@@ -827,49 +829,49 @@ window.addEventListener('offline', ()=>{ if(typeof sectionInitialized!=='undefin
 
 const FIELD_CONFIGS = {
   gnocca: [
-    {key:'cliente', label:'Cliente', type:'text', required:true},
-    {key:'stato', label:'Stato', type:'select', options:['IN PERCORSO','SOSPESA','SPARITA','MAI INIZIATO','ABBANDONO','NON RINNOVO']},
-    {key:'email', label:'Email', type:'text'},
-    {key:'telefono', label:'Telefono', type:'text'},
-    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true},
-    {key:'inizio', label:'Inizio', type:'date'},
-    {key:'fine', label:'Fine', type:'date'},
-    {key:'pagamento', label:'Pagamento', type:'text'},
-    {key:'importo', label:'Importo (EUR)', type:'number'},
-    {key:'nutrizione', label:'Nutrizione', type:'select', options:NUTRI_OPTIONS, allowBlank:true},
-    {key:'pt_extra', label:'PT extra', type:'select', options:PT_EXTRA_OPTIONS, allowBlank:true},
-    {key:'situazione', label:'Attivita', type:'select', options:['ATTIVA','POCO ATTIVA','NON ATTIVA']},
-    {key:'programma', label:'Programma', type:'textarea'},
-    {key:'note', label:'Note', type:'textarea'},
-    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true},
+    {key:'cliente', label:'Cliente', type:'text', required:true, group:'Anagrafica'},
+    {key:'stato', label:'Stato', type:'select', options:['IN PERCORSO','SOSPESA','SPARITA','MAI INIZIATO','ABBANDONO','NON RINNOVO'], group:'Anagrafica'},
+    {key:'email', label:'Email', type:'text', group:'Anagrafica'},
+    {key:'telefono', label:'Telefono', type:'text', group:'Anagrafica'},
+    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true, group:'Percorso'},
+    {key:'inizio', label:'Inizio', type:'date', group:'Percorso'},
+    {key:'fine', label:'Fine', type:'date', group:'Percorso'},
+    {key:'situazione', label:'Attivita', type:'select', options:['ATTIVA','POCO ATTIVA','NON ATTIVA'], group:'Percorso'},
+    {key:'pagamento', label:'Pagamento', type:'text', group:'Pagamento'},
+    {key:'importo', label:'Importo (EUR)', type:'number', group:'Pagamento'},
+    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Pagamento'},
+    {key:'nutrizione', label:'Nutrizione', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Extra'},
+    {key:'pt_extra', label:'PT extra', type:'select', options:PT_EXTRA_OPTIONS, allowBlank:true, group:'Extra'},
+    {key:'programma', label:'Programma', type:'textarea', group:'Extra'},
+    {key:'note', label:'Note', type:'textarea', group:'Extra'},
   ],
   no_tutor: [
-    {key:'cliente', label:'Cliente', type:'text', required:true},
-    {key:'stato', label:'Stato', type:'text'},
-    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true},
-    {key:'inizio', label:'Inizio', type:'date'},
-    {key:'fine', label:'Fine', type:'date'},
-    {key:'pagamento', label:'Pagamento', type:'text'},
-    {key:'importo', label:'Importo (EUR)', type:'number'},
-    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true},
-    {key:'trainer', label:'Trainer', type:'select', options:TRAINER_OPTIONS, allowBlank:true},
-    {key:'nutrizionista', label:'Nutrizionista', type:'select', options:NUTRI_OPTIONS, allowBlank:true},
+    {key:'cliente', label:'Cliente', type:'text', required:true, group:'Anagrafica'},
+    {key:'stato', label:'Stato', type:'text', group:'Anagrafica'},
+    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true, group:'Percorso'},
+    {key:'inizio', label:'Inizio', type:'date', group:'Percorso'},
+    {key:'fine', label:'Fine', type:'date', group:'Percorso'},
+    {key:'pagamento', label:'Pagamento', type:'text', group:'Pagamento'},
+    {key:'importo', label:'Importo (EUR)', type:'number', group:'Pagamento'},
+    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Pagamento'},
+    {key:'trainer', label:'Trainer', type:'select', options:TRAINER_OPTIONS, allowBlank:true, group:'Team'},
+    {key:'nutrizionista', label:'Nutrizionista', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Team'},
   ],
   disattivate: [
-    {key:'cliente', label:'Cliente', type:'text', required:true},
-    {key:'stato', label:'Stato', type:'text'},
-    {key:'email', label:'Email', type:'text'},
-    {key:'telefono', label:'Telefono', type:'text'},
-    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true},
-    {key:'inizio', label:'Inizio', type:'date'},
-    {key:'fine', label:'Fine', type:'date'},
-    {key:'pagamento', label:'Pagamento', type:'text'},
-    {key:'importo', label:'Importo (EUR)', type:'number'},
-    {key:'nutrizione', label:'Nutrizione', type:'select', options:NUTRI_OPTIONS, allowBlank:true},
-    {key:'lezioni_pt', label:'Lezioni PT', type:'text'},
-    {key:'programma', label:'Programma', type:'textarea'},
-    {key:'note', label:'Note', type:'textarea'},
-    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true},
+    {key:'cliente', label:'Cliente', type:'text', required:true, group:'Anagrafica'},
+    {key:'stato', label:'Stato', type:'text', group:'Anagrafica'},
+    {key:'email', label:'Email', type:'text', group:'Anagrafica'},
+    {key:'telefono', label:'Telefono', type:'text', group:'Anagrafica'},
+    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true, group:'Percorso'},
+    {key:'inizio', label:'Inizio', type:'date', group:'Percorso'},
+    {key:'fine', label:'Fine', type:'date', group:'Percorso'},
+    {key:'pagamento', label:'Pagamento', type:'text', group:'Pagamento'},
+    {key:'importo', label:'Importo (EUR)', type:'number', group:'Pagamento'},
+    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Pagamento'},
+    {key:'nutrizione', label:'Nutrizione', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Extra'},
+    {key:'lezioni_pt', label:'Lezioni PT', type:'text', group:'Extra'},
+    {key:'programma', label:'Programma', type:'textarea', group:'Extra'},
+    {key:'note', label:'Note', type:'textarea', group:'Extra'},
   ],
 };
 
@@ -987,33 +989,45 @@ function isoToItDate(iso){
   return `${d}/${m}/${y}`;
 }
 
+function cmFieldHtml(f, val){
+  if(f.type==='select'){
+    if(f.allowBlank){
+      let opts = f.options.slice();
+      if(val && !opts.includes(val)) opts = opts.concat([val]);
+      const optsHtml = ['<option value="">-- seleziona --</option>'].concat(
+        opts.map(o=>`<option value="${escAttr(o)}" ${o===val?'selected':''}>${o}</option>`)
+      ).join('');
+      return `<label class="cm-field"><span>${f.label}</span><select data-key="${f.key}">${optsHtml}</select></label>`;
+    }
+    return `<label class="cm-field"><span>${f.label}</span><select data-key="${f.key}">${f.options.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('')}</select></label>`;
+  }
+  if(f.type==='textarea'){
+    return `<label class="cm-field cm-wide"><span>${f.label}</span><textarea data-key="${f.key}" rows="2">${escHtml(val)}</textarea></label>`;
+  }
+  if(f.type==='date'){
+    return `<label class="cm-field"><span>${f.label}</span><input type="date" data-key="${f.key}" value="${escAttr(itToIsoDate(val))}"></label>`;
+  }
+  return `<label class="cm-field"><span>${f.label}</span><input type="${f.type==='number'?'number':'text'}" ${f.type==='number'?'step="0.01"':''} data-key="${f.key}" value="${escAttr(val)}"></label>`;
+}
 function openClientModal(dataset, id){
   const cfg = FIELD_CONFIGS[dataset];
   const isNew = !id;
   const record = isNew ? {} : (RAW[dataset].find(r=>clientDocId(r)===id) || {});
   modalContext = {dataset, id: isNew ? null : id, isNew};
   document.getElementById('cm-title').textContent = isNew ? 'Nuovo cliente' : `Modifica: ${record.cliente||''}`;
-  document.getElementById('cm-fields').innerHTML = cfg.map(f=>{
-    const val = record[f.key];
-    if(f.type==='select'){
-      if(f.allowBlank){
-        let opts = f.options.slice();
-        if(val && !opts.includes(val)) opts = opts.concat([val]);
-        const optsHtml = ['<option value="">-- seleziona --</option>'].concat(
-          opts.map(o=>`<option value="${escAttr(o)}" ${o===val?'selected':''}>${o}</option>`)
-        ).join('');
-        return `<label class="cm-field"><span>${f.label}</span><select data-key="${f.key}">${optsHtml}</select></label>`;
-      }
-      return `<label class="cm-field"><span>${f.label}</span><select data-key="${f.key}">${f.options.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('')}</select></label>`;
-    }
-    if(f.type==='textarea'){
-      return `<label class="cm-field cm-wide"><span>${f.label}</span><textarea data-key="${f.key}" rows="2">${escHtml(val)}</textarea></label>`;
-    }
-    if(f.type==='date'){
-      return `<label class="cm-field"><span>${f.label}</span><input type="date" data-key="${f.key}" value="${escAttr(itToIsoDate(val))}"></label>`;
-    }
-    return `<label class="cm-field"><span>${f.label}</span><input type="${f.type==='number'?'number':'text'}" ${f.type==='number'?'step="0.01"':''} data-key="${f.key}" value="${escAttr(val)}"></label>`;
-  }).join('');
+  const groups = [];
+  const groupIndex = {};
+  cfg.forEach(f=>{
+    const g = f.group || 'Altro';
+    if(groupIndex[g]===undefined){ groupIndex[g] = groups.length; groups.push({name:g, fields:[]}); }
+    groups[groupIndex[g]].fields.push(f);
+  });
+  document.getElementById('cm-fields').innerHTML = groups.map(g=>`
+    <div class="cm-group">
+      <p class="cm-group-title">${escHtml(g.name)}</p>
+      <div class="cm-fields">${g.fields.map(f=>cmFieldHtml(f, record[f.key])).join('')}</div>
+    </div>
+  `).join('');
   document.getElementById('client-modal-overlay').style.display = 'flex';
 }
 function closeClientModal(){
