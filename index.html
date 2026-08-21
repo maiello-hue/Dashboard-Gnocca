@@ -461,7 +461,7 @@ const loginSubmitEl = document.getElementById('login-submit');
 onAuthStateChanged(auth, user=>{
   if(user){
     loginOverlay.style.display = 'none';
-    appWrap.style.display = '';
+    appWrap.style.display = 'block';
     startFirestoreListeners();
   } else {
     loginOverlay.style.display = 'flex';
