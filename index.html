@@ -877,13 +877,13 @@ function restoreClient(dataset, id){
     .then(()=>{ if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni(); })
     .catch(err=>alert('Errore nel ripristino: ' + err.message));
 }
-function moveGnoccaToDisattivate(gnoccaPayload, oldGnoccaId){
+function moveGnoccaToDisattivate(gnoccaPayload, oldGnoccaId, statoFinale){
   const today = new Date();
   const todayStr = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
-  const noteSuffix = `[Spostata da Gnocca il ${todayStr}]`;
+  const noteSuffix = `[Spostata da Gnocca il ${todayStr} - ${statoFinale}]`;
   const disattivatoPayload = {
     cliente: gnoccaPayload.cliente,
-    stato: 'ABBANDONO',
+    stato: statoFinale,
     email: gnoccaPayload.email || '',
     telefono: gnoccaPayload.telefono || '',
     percorso: gnoccaPayload.percorso || '',
@@ -933,8 +933,8 @@ Vuoi salvare comunque un nuovo cliente?`);
     }
   }
 
-  if(dataset==='gnocca' && payload.stato==='ABBANDONO'){
-    moveGnoccaToDisattivate(payload, isNew ? null : id)
+  if(dataset==='gnocca' && (payload.stato==='ABBANDONO' || payload.stato==='NON RINNOVO')){
+    moveGnoccaToDisattivate(payload, isNew ? null : id, payload.stato)
       .then(()=>{ closeClientModal(); alert('Cliente spostata in Disattivate.'); })
       .catch(err=>alert('Errore nel salvataggio: ' + err.message));
     return;
