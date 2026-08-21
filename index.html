@@ -243,6 +243,12 @@
   .detail-actions{display:flex; gap:8px; margin-left:auto;}
   .btn-icon{display:inline-flex; align-items:center; gap:6px; background:none; border:0.5px solid var(--border-strong); border-radius:8px; padding:6px 10px; font-size:12px; color:var(--text-secondary); cursor:pointer;}
   .btn-icon:hover{background:var(--surface); color:var(--text);}
+  .btn-icon:disabled{opacity:0.35; cursor:not-allowed;}
+  .btn-icon:disabled:hover{background:none; color:var(--text-secondary);}
+  .dash-month-picker{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
+  .dash-month-picker-label{font-size:13px; color:var(--text-secondary);}
+  .dash-month-switch{display:flex; align-items:center; gap:8px;}
+  .dash-month-current{font-size:13px; font-weight:500; min-width:110px; text-align:center; text-transform:capitalize;}
   .btn-delete-client:hover{color:#a32d2d; border-color:#f09595;}
   .azioni-cell{display:flex; gap:6px;}
   .modal-overlay{position:fixed; inset:0; background:rgba(15,15,14,0.5); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;}
@@ -354,6 +360,14 @@
 
     <div class="main-content">
       <div id="section-dashboard" class="app-section active">
+        <div class="dash-month-picker">
+          <span class="dash-month-picker-label">Abbandoni e non rinnovo del mese</span>
+          <div class="dash-month-switch">
+            <button type="button" class="btn-icon" id="dash-month-prev" aria-label="Mese precedente"><i class="fa-solid fa-chevron-left"></i></button>
+            <span class="dash-month-current" id="dash-month-current"></span>
+            <button type="button" class="btn-icon" id="dash-month-next" aria-label="Mese successivo"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
         <div class="kpi-grid" id="riepilogo-globale"></div>
         <div class="panel scadenze-mini-panel">
           <div class="riepilogo-detail-head scadenze-mini-toggle" id="scadenze-mini-toggle" role="button" tabindex="0" aria-expanded="false">
@@ -1866,6 +1880,37 @@ function renderDisattivateClienti(){
 }
 
 // ================= RIEPILOGO GLOBALE (Dashboard) =================
+let dashboardMonthDate = (function(){ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
+function monthKeyFromDate(dt){ return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`; }
+function statusEventDate(d){
+  if(d.note){
+    const m = d.note.match(/Spostata da Gnocca il (\d{2}\/\d{2}\/\d{4})/);
+    if(m){ const dt = parseDate(m[1]); if(dt) return dt; }
+  }
+  // Nessuna data di uscita registrata (record precedente alla funzione di spostamento):
+  // usiamo la data fine percorso come stima, ma non oltre oggi (non puo essere nel futuro).
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fallback = parseDate(d.fine) || parseDate(d.inizio);
+  if(!fallback) return null;
+  return fallback > today ? today : fallback;
+}
+function clientsByStatoInMonth(stato, monthKey){
+  const pool = [...RAW.gnocca, ...RAW.disattivate].filter(x=>x.stato===stato);
+  return pool.filter(x=>{
+    const dt = statusEventDate(x);
+    if(!dt) return false;
+    return monthKeyFromDate(dt)===monthKey;
+  });
+}
+function renderDashMonthPicker(){
+  const label = document.getElementById('dash-month-current');
+  if(!label) return;
+  label.textContent = dashboardMonthDate.toLocaleDateString('it-IT', {month:'long', year:'numeric'});
+  const today = new Date();
+  const isCurrentMonth = dashboardMonthDate.getFullYear()===today.getFullYear() && dashboardMonthDate.getMonth()===today.getMonth();
+  const nextBtn = document.getElementById('dash-month-next');
+  if(nextBtn) nextBtn.disabled = isCurrentMonth;
+}
 function riepilogoInScadenza(g, today){
   return g.filter(x=>{
     if(x.stato!=='IN PERCORSO') return false;
@@ -1876,6 +1921,9 @@ function riepilogoInScadenza(g, today){
   });
 }
 function computeCardClients(filter){
+  if(filter==='ABBANDONO' || filter==='NON RINNOVO'){
+    return clientsByStatoInMonth(filter, monthKeyFromDate(dashboardMonthDate));
+  }
   const g = RAW.gnocca;
   if(filter==='') return g;
   return g.filter(x=>x.stato===filter);
@@ -1961,7 +2009,7 @@ function renderGnoccaAndamentoChart(){
     if(monthIndex[k]!==undefined) ingressiArr[monthIndex[k]]++;
   });
   RAW.disattivate.forEach(c=>{
-    const dt = parseDate(c.fine) || parseDate(c.inizio);
+    const dt = statusEventDate(c);
     if(!dt) return;
     const k = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
     if(monthIndex[k]!==undefined) abbandoniArr[monthIndex[k]]++;
@@ -1988,25 +2036,31 @@ function renderGnoccaAndamentoChart(){
 }
 function renderRiepilogoGlobale(){
   const g = RAW.gnocca;
+  const monthKey = monthKeyFromDate(dashboardMonthDate);
+  const monthSub = dashboardMonthDate.toLocaleDateString('it-IT', {month:'short', year:'numeric'});
 
   const totaleClienti = g.length;
   const inPercorso = g.filter(x=>x.stato==='IN PERCORSO').length;
   const congelate = g.filter(x=>x.stato==='SOSPESA').length;
-  const abbandonate = g.filter(x=>x.stato==='ABBANDONO').length;
+  const abbandonateMese = clientsByStatoInMonth('ABBANDONO', monthKey).length;
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
-  const nonRinnovo = g.filter(x=>x.stato==='NON RINNOVO').length;
+  const nonRinnovoMese = clientsByStatoInMonth('NON RINNOVO', monthKey).length;
 
   const cards = [
     {label:'Clienti totali', value: totaleClienti, bg:'#ffffff', color:'#18181a', filter:''},
     {label:'In percorso', value: inPercorso, bg:'#eaf3de', color:'#27500a', filter:'IN PERCORSO'},
     {label:'Congelate', value: congelate, bg:'#e6f1fb', color:'#0c447c', filter:'SOSPESA'},
-    {label:'Abbandonate', value: abbandonate, bg:'#fcebeb', color:'#791f1f', filter:'ABBANDONO'},
+    {label:'Abbandonate', value: abbandonateMese, sub: monthSub, bg:'#fcebeb', color:'#791f1f', filter:'ABBANDONO'},
     {label:'Sparite', value: sparite, bg:'#faeeda', color:'#633806', filter:'SPARITA'},
-    {label:'Non rinnovo', value: nonRinnovo, bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
+    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, bg:'#efe9fb', color:'#4a3aa7', filter:'NON RINNOVO'},
   ];
-  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(k.label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
+  document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>{
+    const label = k.sub ? `${k.label} (${k.sub})` : k.label;
+    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div>${k.sub ? `<div class="sub" style="color:${k.color}; opacity:0.6;">${escHtml(k.sub)}</div>` : ''}</div>`;
+  }).join('');
   renderRiepilogoDetail();
   renderScadenzeMini();
+  renderDashMonthPicker();
 }
 contattiListeners.push(()=>renderRiepilogoGlobale());
 renderRiepilogoGlobale();
@@ -2027,6 +2081,17 @@ document.getElementById('scadenze-mini-toggle').addEventListener('click', (e)=>{
 });
 document.getElementById('scadenze-mini-toggle').addEventListener('keydown', (e)=>{
   if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleScadenzeMini(); }
+});
+document.getElementById('dash-month-prev').addEventListener('click', ()=>{
+  dashboardMonthDate = new Date(dashboardMonthDate.getFullYear(), dashboardMonthDate.getMonth()-1, 1);
+  renderRiepilogoGlobale();
+});
+document.getElementById('dash-month-next').addEventListener('click', ()=>{
+  const today = new Date();
+  const isCurrentMonth = dashboardMonthDate.getFullYear()===today.getFullYear() && dashboardMonthDate.getMonth()===today.getMonth();
+  if(isCurrentMonth) return;
+  dashboardMonthDate = new Date(dashboardMonthDate.getFullYear(), dashboardMonthDate.getMonth()+1, 1);
+  renderRiepilogoGlobale();
 });
 
 // ================= NAVIGAZIONE =================
