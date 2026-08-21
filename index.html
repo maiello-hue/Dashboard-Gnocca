@@ -69,8 +69,6 @@
     .cm-fields{grid-template-columns:1fr;}
     .filters input{width:100%;}
     .filters select{flex:1 1 140px;}
-    .filter-select{flex:1 1 140px;}
-    .filter-select select{width:100%;}
     .kpi-grid{grid-template-columns:repeat(auto-fit, minmax(140px,1fr));}
     .riepilogo-detail-row{gap:6px;}
     .rd-fine{margin-left:0;}
@@ -131,9 +129,19 @@
     background:var(--surface); color:var(--text); padding:0 10px; font-size:13px;
   }
   .filters input{width:200px;}
-  .filter-select{position:relative; display:inline-flex; align-items:center;}
-  .filter-select i{position:absolute; left:10px; font-size:11px; color:var(--text-muted); pointer-events:none;}
-  .filter-select select{padding-left:26px !important; width:auto;}
+  .filter-select{position:relative; display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; flex-shrink:0;}
+  .filter-select select{
+    width:34px !important; height:34px !important; padding:0 !important; margin:0; border-radius:8px;
+    border:0.5px solid var(--border-strong); background:var(--surface); color:transparent;
+    text-align:center; text-indent:1px; cursor:pointer;
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  }
+  .filter-select select option{color:var(--text);}
+  .filter-select i{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:13px; color:var(--text-secondary); pointer-events:none;}
+  .filter-select.active select{border-color:var(--accent); background:var(--surface-2);}
+  .filter-select.active i{color:var(--accent);}
+  .filter-dot{position:absolute; top:-3px; right:-3px; width:8px; height:8px; border-radius:50%; background:var(--accent); border:1.5px solid var(--surface); display:none;}
+  .filter-select.active .filter-dot{display:block;}
   table{width:100%; border-collapse:collapse; font-size:13px;}
   th, td{padding:11px 18px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
   body.density-compact th, body.density-compact td{padding:6px 12px;}
@@ -1043,6 +1051,14 @@ function makeChart(id, config){
   if(chartInstances[id]) chartInstances[id].destroy();
   chartInstances[id] = new Chart(document.getElementById(id), config);
 }
+function updateFilterIconState(select){
+  const wrapper = select.closest('.filter-select');
+  if(!wrapper) return;
+  const hasValue = !!select.value;
+  wrapper.classList.toggle('active', hasValue);
+  const label = wrapper.dataset.label || '';
+  select.title = hasValue ? `${label}: ${dispVal(select.options[select.selectedIndex].textContent)}` : label;
+}
 function populateSelect(id, data, key){
   const sel = document.getElementById(id);
   const vals = [...new Set(data.map(d=>d[key]))].filter(v=>v).sort();
@@ -1161,9 +1177,9 @@ function renderGnoccaClienti(){
       <div class="filters">
         <button type="button" class="btn-icon-add" id="g-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="g-search" placeholder="Cerca cliente...">
-        <div class="filter-select"><i class="fa-solid fa-list-check"></i><select id="g-stato"><option value="">Stato</option></select></div>
-        <div class="filter-select"><i class="fa-solid fa-bolt"></i><select id="g-situ"><option value="">Attivita</option></select></div>
-        <div class="filter-select"><i class="fa-solid fa-credit-card"></i><select id="g-pagamento"><option value="">Pagamento</option></select></div>
+        <div class="filter-select" data-label="Stato"><i class="fa-solid fa-list-check"></i><select id="g-stato"><option value="">Stato</option></select><span class="filter-dot"></span></div>
+        <div class="filter-select" data-label="Attivita"><i class="fa-solid fa-bolt"></i><select id="g-situ"><option value="">Attivita</option></select><span class="filter-dot"></span></div>
+        <div class="filter-select" data-label="Pagamento"><i class="fa-solid fa-credit-card"></i><select id="g-pagamento"><option value="">Pagamento</option></select><span class="filter-dot"></span></div>
       </div>
       <div class="count-tag" id="g-count"></div>
       <div class="table-wrap">
@@ -1208,6 +1224,7 @@ function renderGnoccaClienti(){
     const fStato = document.getElementById('g-stato').value;
     const fSitu = document.getElementById('g-situ').value;
     const fPag = document.getElementById('g-pagamento').value;
+    ['g-stato','g-situ','g-pagamento'].forEach(id=>updateFilterIconState(document.getElementById(id)));
     let rows = data.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
       if(fStato && d.stato!==fStato) return false;
