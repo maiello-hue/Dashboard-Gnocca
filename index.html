@@ -29,17 +29,6 @@
   .app-layout{display:flex; gap:24px; align-items:flex-start;}
   .sidebar{width:230px; flex-shrink:0; background:var(--surface); border:0.5px solid var(--border); border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
   .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
-  .side-search{position:relative; margin-bottom:6px;}
-  .side-search input{width:100%; height:34px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); padding:0 10px; font-size:13px; font-family:inherit;}
-  .global-search-results{position:absolute; top:38px; left:0; right:0; background:var(--surface); border:0.5px solid var(--border-strong); border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,0.18); max-height:320px; overflow-y:auto; z-index:500; display:none;}
-  .global-search-results.show{display:block;}
-  .gsr-item{display:flex; flex-direction:column; gap:2px; padding:9px 12px; cursor:pointer; border-bottom:0.5px solid var(--border);}
-  .gsr-item:last-child{border-bottom:none;}
-  .gsr-item:hover{background:var(--surface-2);}
-  .gsr-name{font-size:13px; font-weight:500; color:var(--text);}
-  .gsr-meta{font-size:11px; color:var(--text-muted);}
-  .gsr-empty{padding:14px; font-size:12px; color:var(--text-muted); text-align:center;}
-  .client-row.gsr-highlight td{background:#fdf1d6 !important;}
   .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px;}
   .side-btn i{width:18px; text-align:center; font-size:15px; color:var(--text-muted);}
   .side-count{margin-left:auto; font-size:11px; color:var(--text-muted);}
@@ -71,6 +60,7 @@
     .filters select{flex:1 1 140px;}
     .kpi-grid{grid-template-columns:repeat(auto-fit, minmax(140px,1fr));}
     .riepilogo-detail-row{gap:6px;}
+    .rd-nome{flex:0 0 auto; width:auto; max-width:100%; white-space:normal;}
     .rd-fine{margin-left:0;}
     .panel{padding:14px;}
     .pill-tabs{gap:6px;}
@@ -113,7 +103,7 @@
   .riepilogo-detail-list{max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
   .riepilogo-detail-row{display:flex; align-items:center; gap:12px; padding:8px 4px; border-bottom:0.5px solid var(--border); font-size:13px; flex-wrap:wrap;}
   .riepilogo-detail-row:last-child{border-bottom:none;}
-  .rd-nome{font-weight:500; flex:1 1 160px; min-width:140px;}
+  .rd-nome{font-weight:500; flex:0 0 200px; width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rd-fine{margin-left:auto; color:var(--text-secondary); font-size:12px;}
   .panel{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px;}
   .panel h2{font-size:16px; font-weight:500; margin:0 0 4px;}
@@ -191,6 +181,8 @@
   .client-detail.open{display:table-row;}
   .client-detail td{background:var(--surface-2); padding:12px 14px;}
   .detail-box{display:flex; flex-wrap:wrap; align-items:center; gap:24px; font-size:13px; color:var(--text-secondary);}
+  .detail-box a{color:var(--accent); text-decoration:underline;}
+  .detail-box a:hover{opacity:0.8;}
   .detail-box i{margin-right:6px; color:var(--text-muted);}
   .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
   .sync-tag{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
@@ -310,10 +302,6 @@
 
   <div class="app-layout">
     <div class="sidebar">
-      <div class="side-search">
-        <input type="text" id="global-search" placeholder="Cerca cliente...">
-        <div class="global-search-results" id="global-search-results"></div>
-      </div>
       <div class="side-label">Navigazione</div>
       <button class="side-btn active" data-nav="dashboard"><i class="fa-solid fa-house"></i>Dashboard</button>
       <button class="side-btn" data-nav="clienti"><i class="fa-solid fa-users"></i>Clienti</button>
@@ -1487,11 +1475,11 @@ function renderNoTutorClienti(){
       <div class="filters">
         <button type="button" class="btn-icon-add" id="nt-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="nt-search" placeholder="Cerca cliente...">
-        <select id="nt-stato"><option value="">Tutti gli stati</option></select>
-        <select id="nt-venditore"><option value="">Tutti i venditori</option></select>
-        <select id="nt-trainer"><option value="">Tutti i trainer</option></select>
-        <select id="nt-nutri"><option value="">Tutti i nutrizionisti</option></select>
-        <select id="nt-pagamento"><option value="">Tutti i pagamenti</option></select>
+        <div class="filter-select" data-label="Stato"><i class="fa-solid fa-list-check"></i><select id="nt-stato"><option value="">Stato</option></select><span class="filter-dot"></span></div>
+        <div class="filter-select" data-label="Venditore"><i class="fa-solid fa-tag"></i><select id="nt-venditore"><option value="">Venditore</option></select><span class="filter-dot"></span></div>
+        <div class="filter-select" data-label="Trainer"><i class="fa-solid fa-dumbbell"></i><select id="nt-trainer"><option value="">Trainer</option></select><span class="filter-dot"></span></div>
+        <div class="filter-select" data-label="Nutrizionista"><i class="fa-solid fa-apple-whole"></i><select id="nt-nutri"><option value="">Nutrizionista</option></select><span class="filter-dot"></span></div>
+        <div class="filter-select" data-label="Pagamento"><i class="fa-solid fa-credit-card"></i><select id="nt-pagamento"><option value="">Pagamento</option></select><span class="filter-dot"></span></div>
       </div>
       <div class="count-tag" id="nt-count"></div>
       <div class="table-wrap">
@@ -1539,6 +1527,7 @@ function renderNoTutorClienti(){
     const fTrainer = document.getElementById('nt-trainer').value;
     const fNutri = document.getElementById('nt-nutri').value;
     const fPag = document.getElementById('nt-pagamento').value;
+    ['nt-stato','nt-venditore','nt-trainer','nt-nutri','nt-pagamento'].forEach(id=>updateFilterIconState(document.getElementById(id)));
     let rows = data.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
       if(fStato && d.stato!==fStato) return false;
@@ -1900,65 +1889,7 @@ document.addEventListener('keydown', (e)=>{
   const modalOverlay = document.getElementById('client-modal-overlay');
   if(modalOverlay && modalOverlay.style.display==='flex'){ closeClientModal(); return; }
   if(typeof openDetailFilter!=='undefined' && openDetailFilter!==null){ closeRiepilogoDetail(); return; }
-  const gsr = document.getElementById('global-search-results');
-  if(gsr && gsr.classList.contains('show')) gsr.classList.remove('show');
 });
-
-// ================= RICERCA UNIFICATA =================
-const DATASET_LABELS_SEARCH = {gnocca:'Gnocca', no_tutor:'No Tutor', disattivate:'Disattivate'};
-function runGlobalSearch(term){
-  const resultsEl = document.getElementById('global-search-results');
-  const q = (term||'').trim().toLowerCase();
-  if(!q){ resultsEl.classList.remove('show'); resultsEl.innerHTML=''; return; }
-  const matches = [];
-  ['gnocca','no_tutor','disattivate'].forEach(key=>{
-    RAW[key].forEach(d=>{
-      if((d.cliente||'').toLowerCase().includes(q)) matches.push({dataset:key, d});
-    });
-  });
-  resultsEl.innerHTML = matches.length ? matches.slice(0,20).map(({dataset,d})=>`
-    <div class="gsr-item" data-dataset="${dataset}" data-id="${escAttr(clientDocId(d))}">
-      <span class="gsr-name">${escHtml(d.cliente)}</span>
-      <span class="gsr-meta">${DATASET_LABELS_SEARCH[dataset]} · ${escHtml(d.stato||'')}</span>
-    </div>
-  `).join('') : '<div class="gsr-empty">Nessun cliente trovato.</div>';
-  resultsEl.classList.add('show');
-}
-function goToSearchResult(dataset, id){
-  const resultsEl = document.getElementById('global-search-results');
-  resultsEl.classList.remove('show');
-  document.getElementById('global-search').value = '';
-  if(dataset==='no_tutor'){
-    navigateTo('no_tutor');
-  } else {
-    navigateTo('clienti');
-    showDataset('clienti', dataset);
-  }
-  setTimeout(()=>{
-    const btn = document.querySelector(`.btn-edit-client[data-dataset="${dataset}"][data-id="${CSS.escape(id)}"]`);
-    if(!btn) return;
-    const detailRow = btn.closest('tr.client-detail');
-    const mainRow = detailRow ? detailRow.previousElementSibling : null;
-    if(detailRow) detailRow.classList.add('open');
-    if(mainRow){
-      mainRow.scrollIntoView({behavior:'smooth', block:'center'});
-      mainRow.classList.add('gsr-highlight');
-      setTimeout(()=>mainRow.classList.remove('gsr-highlight'), 2000);
-    }
-  }, 120);
-}
-const globalSearchInput = document.getElementById('global-search');
-if(globalSearchInput){
-  globalSearchInput.addEventListener('input', (e)=>runGlobalSearch(e.target.value));
-  document.getElementById('global-search-results').addEventListener('click', (e)=>{
-    const item = e.target.closest('.gsr-item');
-    if(!item || !item.dataset.id) return;
-    goToSearchResult(item.dataset.dataset, item.dataset.id);
-  });
-  document.addEventListener('click', (e)=>{
-    if(!e.target.closest('.side-search')) document.getElementById('global-search-results').classList.remove('show');
-  });
-}
 </script>
 </body>
 </html>
