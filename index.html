@@ -114,6 +114,12 @@
   .kpi-clickable.kpi-open{outline:2px solid var(--text); outline-offset:-2px;}
   .riepilogo-detail-panel{margin-top:4px;}
   .riepilogo-detail-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .scadenze-mini-toggle{cursor:pointer; margin-bottom:0; user-select:none;}
+  .scadenze-mini-toggle:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;}
+  .scadenze-mini-count{font-size:13px; font-weight:400; color:var(--text-secondary); margin-left:2px;}
+  .scadenze-mini-actions{display:flex; align-items:center; gap:12px;}
+  .scadenze-mini-chevron{font-size:13px; color:var(--text-secondary); transition:transform 0.2s ease;}
+  .scadenze-mini-chevron.open{transform:rotate(180deg);}
   .riepilogo-detail-head h2{margin:0;}
   .riepilogo-detail-list{max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
   .riepilogo-detail-row{display:flex; align-items:center; gap:12px; padding:8px 4px; border-bottom:0.5px solid var(--border); font-size:13px; flex-wrap:wrap;}
@@ -347,18 +353,16 @@
       <div id="section-dashboard" class="app-section active">
         <div class="kpi-grid" id="riepilogo-globale"></div>
         <div class="panel scadenze-mini-panel">
-          <div class="riepilogo-detail-head">
-            <h2><i class="fa-solid fa-clock"></i> Prossime scadenze (30gg)</h2>
-            <button type="button" class="btn-icon" id="scadenze-mini-vedi-tutte"><i class="fa-solid fa-arrow-right"></i>Vedi tutte</button>
+          <div class="riepilogo-detail-head scadenze-mini-toggle" id="scadenze-mini-toggle" role="button" tabindex="0" aria-expanded="false">
+            <h2><i class="fa-solid fa-clock"></i> Prossime scadenze (30gg) <span class="scadenze-mini-count" id="scadenze-mini-count"></span></h2>
+            <div class="scadenze-mini-actions">
+              <button type="button" class="btn-icon" id="scadenze-mini-vedi-tutte"><i class="fa-solid fa-arrow-right"></i>Vedi tutte</button>
+              <i class="fa-solid fa-chevron-down scadenze-mini-chevron" id="scadenze-mini-chevron"></i>
+            </div>
           </div>
-          <div class="riepilogo-detail-list" id="scadenze-mini-list"></div>
+          <div class="riepilogo-detail-list" id="scadenze-mini-list" style="display:none;"></div>
         </div>
         <div id="riepilogo-detail" style="display:none;"></div>
-        <div class="panel dash-trend-panel">
-          <h2>Andamento clienti (ultimi 6 mesi)</h2>
-          <p class="desc">Nuovi ingressi vs abbandoni, per mese</p>
-          <div class="chart-box" style="height:260px;"><canvas id="dash-chart-trend" role="img" aria-label="Grafico a barre di nuovi ingressi e abbandoni per mese">Andamento clienti</canvas></div>
-        </div>
       </div>
 
       <div id="section-clienti" class="app-section">
@@ -1239,9 +1243,13 @@ function renderGnoccaAnalisi(){
       </div>
     </div>
     <div class="panel">
-      <h2>Incasso mensile (per data inizio percorso)</h2>
-      <p class="desc">Somma importi per mese di avvio</p>
-      <div class="chart-box" style="height:260px;"><canvas id="g-chart-mensile" role="img" aria-label="Grafico a linee dell'incasso mensile">Incasso mensile</canvas></div>
+      <h2>Andamento clienti (ultimi 6 mesi)</h2>
+      <p class="desc">Nuovi ingressi vs abbandoni, per mese</p>
+      <div style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom:10px; font-size:12px; color:var(--text-secondary);">
+        <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:${COLORS.green};"></span>Nuovi ingressi</span>
+        <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:${COLORS.red};"></span>Abbandoni</span>
+      </div>
+      <div class="chart-box" style="height:260px;"><canvas id="g-chart-andamento" role="img" aria-label="Grafico a barre di nuovi ingressi e abbandoni per mese">Andamento clienti</canvas></div>
     </div>
     <div class="charts-grid">
       <div class="panel">
@@ -1283,10 +1291,7 @@ function renderGnoccaAnalisi(){
   renderLegend(document.getElementById('g-legend-pag'), pagLabels, pagValues, palette, true);
   makeChart('g-chart-pag', {type:'doughnut', data:{labels:pagLabels, datasets:[{data:pagValues, backgroundColor:palette, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
-  const monthM = {};
-  data.forEach(d=>{ const dt=parseDate(d.inizio); if(!dt) return; const k=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`; monthM[k]=(monthM[k]||0)+d.importo; });
-  const monthLabels = Object.keys(monthM).sort();
-  makeChart('g-chart-mensile', {type:'line', data:{labels:monthLabels, datasets:[{label:'Incasso', data:monthLabels.map(l=>Math.round(monthM[l])), borderColor:COLORS.blue, backgroundColor:'rgba(42,120,214,0.1)', fill:true, tension:0.25, borderWidth:2, pointRadius:2, pointBackgroundColor:COLORS.blue}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtEUR(c.parsed.y)}}}, scales:{y:{ticks:{callback:v=>fmtEUR(v)}, grid:{color:'#e4e3dd'}}, x:{ticks:{autoSkip:true, maxRotation:45}, grid:{display:false}}}}});
+  renderGnoccaAndamentoChart();
 
   const vendM = sumBy(data,'venditore','importo');
   const vendEntries = Object.entries(vendM).sort((a,b)=>b[1]-a[1]);
@@ -1930,9 +1935,11 @@ function closeRiepilogoDetail(){
 }
 function renderScadenzeMini(){
   const list = document.getElementById('scadenze-mini-list');
+  const count = document.getElementById('scadenze-mini-count');
   if(!list) return;
   const today = new Date(); today.setHours(0,0,0,0);
   const items = riepilogoInScadenza(RAW.gnocca, today).slice().sort((a,b)=>(parseDate(a.fine)||0)-(parseDate(b.fine)||0));
+  if(count) count.textContent = items.length ? `· ${items.length}` : '';
   list.innerHTML = items.length
     ? items.map(d=>{
         const {label} = contattiGgInfo(parseDate(d.fine), today);
@@ -1940,8 +1947,18 @@ function renderScadenzeMini(){
       }).join('')
     : emptyStateHtml('fa-circle-check', 'Nessuna scadenza nei prossimi 30 giorni.');
 }
-function renderDashboardTrendChart(){
-  const canvas = document.getElementById('dash-chart-trend');
+let scadenzeMiniOpen = false;
+function toggleScadenzeMini(){
+  scadenzeMiniOpen = !scadenzeMiniOpen;
+  const list = document.getElementById('scadenze-mini-list');
+  const chevron = document.getElementById('scadenze-mini-chevron');
+  const toggle = document.getElementById('scadenze-mini-toggle');
+  if(list) list.style.display = scadenzeMiniOpen ? 'flex' : 'none';
+  if(chevron) chevron.classList.toggle('open', scadenzeMiniOpen);
+  if(toggle) toggle.setAttribute('aria-expanded', scadenzeMiniOpen ? 'true' : 'false');
+}
+function renderGnoccaAndamentoChart(){
+  const canvas = document.getElementById('g-chart-andamento');
   if(!canvas) return;
   const monthsBack = 6;
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1969,7 +1986,7 @@ function renderDashboardTrendChart(){
     if(monthIndex[k]!==undefined) abbandoniArr[monthIndex[k]]++;
   });
 
-  makeChart('dash-chart-trend', {
+  makeChart('g-chart-andamento', {
     type:'bar',
     data:{
       labels: months.map(m=>m.label),
@@ -1980,7 +1997,7 @@ function renderDashboardTrendChart(){
     },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:true, position:'top', align:'end', labels:{boxWidth:10, usePointStyle:true, pointStyle:'circle', font:{size:12}}}},
+      plugins:{legend:{display:false}},
       scales:{
         y:{beginAtZero:true, ticks:{stepSize:1, precision:0}, grid:{color:'#e4e3dd'}},
         x:{grid:{display:false}}
@@ -2009,7 +2026,6 @@ function renderRiepilogoGlobale(){
   document.getElementById('riepilogo-globale').innerHTML = cards.map(k=>`<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(k.label)}" style="background:${k.bg}; color:${k.color}; border:0.5px solid var(--border);"><div class="label" style="color:${k.color}; opacity:0.75;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`).join('');
   renderRiepilogoDetail();
   renderScadenzeMini();
-  renderDashboardTrendChart();
 }
 contattiListeners.push(()=>renderRiepilogoGlobale());
 renderRiepilogoGlobale();
@@ -2023,7 +2039,14 @@ document.getElementById('riepilogo-globale').addEventListener('click', (e)=>{
   renderRiepilogoDetail();
   document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.toggle('kpi-open', c.dataset.filter===filter));
 });
-document.getElementById('scadenze-mini-vedi-tutte').addEventListener('click', ()=>navigateTo('scadenze'));
+document.getElementById('scadenze-mini-vedi-tutte').addEventListener('click', (e)=>{ e.stopPropagation(); navigateTo('scadenze'); });
+document.getElementById('scadenze-mini-toggle').addEventListener('click', (e)=>{
+  if(e.target.closest('#scadenze-mini-vedi-tutte')) return;
+  toggleScadenzeMini();
+});
+document.getElementById('scadenze-mini-toggle').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleScadenzeMini(); }
+});
 
 // ================= NAVIGAZIONE =================
 const renderedViews = {};
