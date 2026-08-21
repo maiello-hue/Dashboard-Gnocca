@@ -69,6 +69,8 @@
     .cm-fields{grid-template-columns:1fr;}
     .filters input{width:100%;}
     .filters select{flex:1 1 140px;}
+    .filter-select{flex:1 1 140px;}
+    .filter-select select{width:100%;}
     .kpi-grid{grid-template-columns:repeat(auto-fit, minmax(140px,1fr));}
     .riepilogo-detail-row{gap:6px;}
     .rd-fine{margin-left:0;}
@@ -129,6 +131,9 @@
     background:var(--surface); color:var(--text); padding:0 10px; font-size:13px;
   }
   .filters input{width:200px;}
+  .filter-select{position:relative; display:inline-flex; align-items:center;}
+  .filter-select i{position:absolute; left:10px; font-size:11px; color:var(--text-muted); pointer-events:none;}
+  .filter-select select{padding-left:26px !important; width:auto;}
   table{width:100%; border-collapse:collapse; font-size:13px;}
   th, td{padding:11px 18px; text-align:left; border-bottom:0.5px solid var(--border); white-space:nowrap;}
   body.density-compact th, body.density-compact td{padding:6px 12px;}
@@ -1156,10 +1161,9 @@ function renderGnoccaClienti(){
       <div class="filters">
         <button type="button" class="btn-icon-add" id="g-add-btn" title="Aggiungi cliente" aria-label="Aggiungi cliente"><i class="fa-solid fa-plus"></i></button>
         <input type="text" id="g-search" placeholder="Cerca cliente...">
-        <select id="g-stato"><option value="">Tutti gli stati</option></select>
-        <select id="g-situ"><option value="">Tutte le attivita</option></select>
-        <select id="g-venditore"><option value="">Tutti i venditori</option></select>
-        <select id="g-pagamento"><option value="">Tutti i pagamenti</option></select>
+        <div class="filter-select"><i class="fa-solid fa-list-check"></i><select id="g-stato"><option value="">Stato</option></select></div>
+        <div class="filter-select"><i class="fa-solid fa-bolt"></i><select id="g-situ"><option value="">Attivita</option></select></div>
+        <div class="filter-select"><i class="fa-solid fa-credit-card"></i><select id="g-pagamento"><option value="">Pagamento</option></select></div>
       </div>
       <div class="count-tag" id="g-count"></div>
       <div class="table-wrap">
@@ -1182,7 +1186,6 @@ function renderGnoccaClienti(){
 
   populateSelect('g-stato', data, 'stato');
   populateSelect('g-situ', data, 'situazione');
-  populateSelect('g-venditore', data, 'venditore');
   populateSelect('g-pagamento', data, 'pagamento');
   document.getElementById('g-add-btn').addEventListener('click', ()=>openClientModal('gnocca', null));
 
@@ -1204,13 +1207,11 @@ function renderGnoccaClienti(){
     const search = document.getElementById('g-search').value.toLowerCase();
     const fStato = document.getElementById('g-stato').value;
     const fSitu = document.getElementById('g-situ').value;
-    const fVend = document.getElementById('g-venditore').value;
     const fPag = document.getElementById('g-pagamento').value;
     let rows = data.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
       if(fStato && d.stato!==fStato) return false;
       if(fSitu && d.situazione!==fSitu) return false;
-      if(fVend && d.venditore!==fVend) return false;
       if(fPag && d.pagamento!==fPag) return false;
       return true;
     });
@@ -1249,7 +1250,7 @@ function renderGnoccaClienti(){
   el.querySelectorAll('#g-table th').forEach(th=>{
     th.addEventListener('click', ()=>{ const key=th.dataset.key; if(sort.key===key) sort.dir*=-1; else {sort.key=key; sort.dir=1;} renderTable(); });
   });
-  ['g-search','g-stato','g-situ','g-venditore','g-pagamento'].forEach(id=>document.getElementById(id).addEventListener('input', renderTable));
+  ['g-search','g-stato','g-situ','g-pagamento'].forEach(id=>document.getElementById(id).addEventListener('input', renderTable));
   renderTable();
 }
 
