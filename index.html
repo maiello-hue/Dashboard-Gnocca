@@ -256,6 +256,11 @@
   .modal-overlay{animation:overlayFade 0.15s ease;}
   .modal-box{background:var(--surface); border-radius:14px; padding:22px; width:min(600px,100%); max-height:88vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.3); animation:modalPop 0.18s ease;}
   .modal-box h2{margin:0 0 14px; font-size:17px; font-weight:500;}
+  .cm-steps{display:flex; align-items:center; gap:6px; margin-bottom:18px;}
+  .cm-step-dot{width:22px; height:22px; border-radius:50%; background:var(--surface-2); border:0.5px solid var(--border-strong); color:var(--text-secondary); font-size:11px; font-weight:500; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .cm-step-dot.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .cm-step-dot.done{border-color:var(--accent); color:var(--accent);}
+  .cm-step-line{flex:1; height:1px; background:var(--border-strong);}
   .cm-groups{display:flex; flex-direction:column; gap:18px;}
   .cm-group-title{font-size:11px; font-weight:500; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em; margin:0 0 8px;}
   .cm-fields{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
@@ -265,7 +270,8 @@
     height:36px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); padding:0 10px; font-size:13px; font-family:inherit;
   }
   .cm-field textarea{height:auto; padding:8px 10px; resize:vertical;}
-  .cm-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
+  .cm-actions{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:18px;}
+  .cm-actions-nav{display:flex; gap:10px;}
   .btn-secondary{background:var(--surface-2); color:var(--text); border:0.5px solid var(--border-strong); border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer; transition:background 0.15s ease, opacity 0.15s ease;}
   .btn-primary{background:var(--btn-solid-bg); color:var(--btn-solid-fg); border:none; border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
   .settings-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); gap:16px; align-items:start;}
@@ -437,10 +443,15 @@
 <div class="modal-overlay" id="client-modal-overlay">
   <div class="modal-box">
     <h2 id="cm-title">Nuovo cliente</h2>
+    <div class="cm-steps" id="cm-steps"></div>
     <div class="cm-groups" id="cm-fields"></div>
     <div class="cm-actions">
       <button type="button" class="btn-secondary" id="cm-cancel">Annulla</button>
-      <button type="button" class="btn-primary" id="cm-save">Salva</button>
+      <div class="cm-actions-nav">
+        <button type="button" class="btn-secondary" id="cm-back" style="display:none;">Indietro</button>
+        <button type="button" class="btn-primary" id="cm-next">Avanti</button>
+        <button type="button" class="btn-primary" id="cm-save" style="display:none;">Salva</button>
+      </div>
     </div>
   </div>
 </div>
@@ -842,8 +853,6 @@ const FIELD_CONFIGS = {
     {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Pagamento'},
     {key:'nutrizione', label:'Nutrizione', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Extra'},
     {key:'pt_extra', label:'PT extra', type:'select', options:PT_EXTRA_OPTIONS, allowBlank:true, group:'Extra'},
-    {key:'programma', label:'Programma', type:'textarea', group:'Extra'},
-    {key:'note', label:'Note', type:'textarea', group:'Extra'},
   ],
   no_tutor: [
     {key:'cliente', label:'Cliente', type:'text', required:true, group:'Anagrafica'},
@@ -1013,8 +1022,6 @@ function openClientModal(dataset, id){
   const cfg = FIELD_CONFIGS[dataset];
   const isNew = !id;
   const record = isNew ? {} : (RAW[dataset].find(r=>clientDocId(r)===id) || {});
-  modalContext = {dataset, id: isNew ? null : id, isNew};
-  document.getElementById('cm-title').textContent = isNew ? 'Nuovo cliente' : `Modifica: ${record.cliente||''}`;
   const groups = [];
   const groupIndex = {};
   cfg.forEach(f=>{
@@ -1022,13 +1029,43 @@ function openClientModal(dataset, id){
     if(groupIndex[g]===undefined){ groupIndex[g] = groups.length; groups.push({name:g, fields:[]}); }
     groups[groupIndex[g]].fields.push(f);
   });
-  document.getElementById('cm-fields').innerHTML = groups.map(g=>`
+  modalContext = {dataset, id: isNew ? null : id, isNew, record, groups, step:0, values:{...record}};
+  document.getElementById('cm-title').textContent = isNew ? 'Nuovo cliente' : `Modifica: ${record.cliente||''}`;
+  renderModalStep();
+  document.getElementById('client-modal-overlay').style.display = 'flex';
+}
+function renderModalStep(){
+  const {groups, step} = modalContext;
+  const g = groups[step];
+  document.getElementById('cm-fields').innerHTML = `
     <div class="cm-group">
       <p class="cm-group-title">${escHtml(g.name)}</p>
-      <div class="cm-fields">${g.fields.map(f=>cmFieldHtml(f, record[f.key])).join('')}</div>
+      <div class="cm-fields">${g.fields.map(f=>cmFieldHtml(f, modalContext.values[f.key])).join('')}</div>
     </div>
-  `).join('');
-  document.getElementById('client-modal-overlay').style.display = 'flex';
+  `;
+  document.getElementById('cm-steps').innerHTML = groups.map((gr,i)=>{
+    const cls = i===step ? 'active' : i<step ? 'done' : '';
+    const dot = `<span class="cm-step-dot ${cls}">${i+1}</span>`;
+    return i < groups.length-1 ? dot + '<span class="cm-step-line"></span>' : dot;
+  }).join('');
+  document.getElementById('cm-back').style.display = step===0 ? 'none' : 'inline-flex';
+  document.getElementById('cm-next').style.display = step===groups.length-1 ? 'none' : 'inline-flex';
+  document.getElementById('cm-save').style.display = step===groups.length-1 ? 'inline-flex' : 'none';
+}
+function captureStepValues(){
+  const {groups, step} = modalContext;
+  let valid = true;
+  groups[step].fields.forEach(f=>{
+    const el = document.querySelector(`#cm-fields [data-key="${f.key}"]`);
+    if(!el) return;
+    let v = el.value;
+    if(f.type==='number'){ v = v==='' ? 0 : (parseFloat(String(v).replace(',','.'))||0); }
+    else if(f.type==='date'){ v = isoToItDate(v); }
+    if(f.required && !String(v).trim()){ valid=false; el.style.borderColor = '#e34948'; }
+    else{ el.style.borderColor = ''; }
+    modalContext.values[f.key] = v;
+  });
+  return valid;
 }
 function closeClientModal(){
   document.getElementById('client-modal-overlay').style.display = 'none';
@@ -1081,22 +1118,26 @@ function moveGnoccaToDisattivate(gnoccaPayload, oldGnoccaId, statoFinale){
 }
 document.getElementById('cm-cancel').addEventListener('click', closeClientModal);
 document.getElementById('client-modal-overlay').addEventListener('click', (e)=>{ if(e.target.id==='client-modal-overlay') closeClientModal(); });
+document.getElementById('cm-back').addEventListener('click', ()=>{
+  if(!modalContext) return;
+  captureStepValues();
+  modalContext.step--;
+  renderModalStep();
+});
+document.getElementById('cm-next').addEventListener('click', ()=>{
+  if(!modalContext) return;
+  const valid = captureStepValues();
+  if(!valid){ showToast('Il campo Cliente è obbligatorio.', 'error'); return; }
+  modalContext.step++;
+  renderModalStep();
+});
 document.getElementById('cm-save').addEventListener('click', async ()=>{
   if(!modalContext) return;
-  const {dataset, id, isNew} = modalContext;
-  const cfg = FIELD_CONFIGS[dataset];
-  const payload = {};
-  let valid = true;
-  cfg.forEach(f=>{
-    const el = document.querySelector(`#cm-fields [data-key="${f.key}"]`);
-    let v = el.value;
-    if(f.type==='number'){ v = v==='' ? 0 : (parseFloat(String(v).replace(',','.'))||0); }
-    else if(f.type==='date'){ v = isoToItDate(v); }
-    if(f.required && !String(v).trim()){ valid=false; el.style.borderColor = '#e34948'; }
-    else{ el.style.borderColor = ''; }
-    payload[f.key] = v;
-  });
+  const valid = captureStepValues();
   if(!valid){ showToast('Il campo Cliente è obbligatorio.', 'error'); return; }
+  const {dataset, id, isNew, record, values} = modalContext;
+  const payload = {...record, ...values};
+  delete payload._id;
 
   if(isNew){
     const nameNorm = (payload.cliente||'').trim().toLowerCase();
