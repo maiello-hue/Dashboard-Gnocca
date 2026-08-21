@@ -185,6 +185,7 @@
   .b-perc-6-6gnocca{background:#fbe3d3; color:#8a3c0a;}
   .b-perc-4{background:#e6f1fb; color:#0c447c;}
   .b-perc-promo{background:#fcebeb; color:#791f1f;}
+  .b-perc-gnocca4life{background:#eaf3de; color:#27500a;}
   .b-situ-attiva{background:#eaf3de; color:#27500a;}
   .b-situ-poco{background:#faeeda; color:#633806;}
   .b-situ-non{background:#fcebeb; color:#791f1f;}
@@ -246,8 +247,7 @@
   .btn-icon:hover{background:var(--surface); color:var(--text);}
   .btn-icon:disabled{opacity:0.35; cursor:not-allowed;}
   .btn-icon:disabled:hover{background:none; color:var(--text-secondary);}
-  .dash-month-picker{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
-  .dash-month-picker-label{font-size:13px; color:var(--text-secondary);}
+  .dash-month-picker{display:flex; align-items:center; justify-content:flex-end; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
   .dash-month-switch{display:flex; align-items:center; gap:8px;}
   .dash-month-current{font-size:13px; font-weight:500; min-width:110px; text-align:center; text-transform:capitalize;}
   .btn-delete-client:hover{color:#a32d2d; border-color:#f09595;}
@@ -362,7 +362,6 @@
     <div class="main-content">
       <div id="section-dashboard" class="app-section active">
         <div class="dash-month-picker">
-          <span class="dash-month-picker-label">Abbandoni e non rinnovo del mese</span>
           <div class="dash-month-switch">
             <button type="button" class="btn-icon" id="dash-month-prev" aria-label="Mese precedente"><i class="fa-solid fa-chevron-left"></i></button>
             <span class="dash-month-current" id="dash-month-current"></span>
@@ -1168,6 +1167,7 @@ function statoBadgeClass(s){
 }
 function percorsoBadgeClass(p){
   const up = (p||'').toUpperCase();
+  if(up.includes('GNOCCA 4 LIFE')) return 'b-perc-gnocca4life';
   if(up.includes('PROMO ESTATE')) return 'b-perc-promo';
   if(up.includes('6 MESI') && up.includes('GNOCCA')) return 'b-perc-6-6gnocca';
   if(up.includes('4 MESI')) return 'b-perc-4';
