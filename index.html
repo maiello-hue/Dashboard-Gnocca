@@ -14,11 +14,24 @@
     --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --yellow:#eda100;
     --magenta:#e87ba4; --green:#008300; --violet:#4a3aa7; --red:#e34948; --gray:#9a998f;
     --accent:#e0245e;
+    --btn-solid-bg:#18181a; --btn-solid-fg:#ffffff;
+  }
+  body.theme-dark{
+    --bg:#141417; --surface:#1c1c21; --surface-2:#24242b;
+    --text:#f1f0ed; --text-secondary:#b6b4ae; --text-muted:#87867f;
+    --border:#323239; --border-strong:#44444d;
+    --btn-solid-bg:#f1f0ed; --btn-solid-fg:#18181a;
   }
   *{box-sizing:border-box;}
+  @keyframes modalPop{from{opacity:0; transform:translateY(6px) scale(0.98);} to{opacity:1; transform:translateY(0) scale(1);}}
+  @keyframes overlayFade{from{opacity:0;} to{opacity:1;}}
+  @keyframes sectionFade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes detailFade{from{opacity:0;} to{opacity:1;}}
+  @keyframes toastIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
   body{
     margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--bg); color:var(--text); padding:24px; overflow-x:hidden;
+    transition:background 0.2s ease, color 0.2s ease;
   }
   .wrap{max-width:1280px; margin:0 auto;}
   h1{font-size:22px; font-weight:500; margin:0 0 4px;}
@@ -29,7 +42,7 @@
   .app-layout{display:flex; gap:24px; align-items:flex-start;}
   .sidebar{width:230px; flex-shrink:0; background:var(--surface); border:0.5px solid var(--border); border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
   .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
-  .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px;}
+  .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px; transition:background 0.15s ease, color 0.15s ease;}
   .side-btn i{width:18px; text-align:center; font-size:15px; color:var(--text-muted);}
   .side-count{margin-left:auto; font-size:11px; color:var(--text-muted);}
   .side-btn:hover{background:var(--surface-2); color:var(--text);}
@@ -44,10 +57,10 @@
   .side-divider{height:0.5px; background:var(--border); margin:10px 6px;}
   .main-content{flex:1; min-width:0;}
   .app-section{display:none;}
-  .app-section.active{display:block;}
+  .app-section.active{display:block; animation:sectionFade 0.22s ease;}
   .pill-tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
-  .pill-btn{background:var(--surface); border:0.5px solid var(--border-strong); border-radius:999px; padding:6px 14px; font-size:13px; color:var(--text-secondary); cursor:pointer;}
-  .pill-btn.active{background:var(--text); color:#ffffff; border-color:var(--text);}
+  .pill-btn{background:var(--surface); border:0.5px solid var(--border-strong); border-radius:999px; padding:6px 14px; font-size:13px; color:var(--text-secondary); cursor:pointer; transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;}
+  .pill-btn.active{background:var(--btn-solid-bg); color:var(--btn-solid-fg); border-color:var(--btn-solid-bg);}
   .dataset-panel{display:none;}
   .dataset-panel.active{display:block;}
   @media (max-width:760px){
@@ -141,6 +154,11 @@
   th{color:var(--text-secondary); font-weight:500; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--surface);}
   tbody tr:hover{background:var(--surface-2);}
   .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:500;}
+  .client-name-cell{display:inline-flex; align-items:center; gap:8px;}
+  .avatar{display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:700; flex-shrink:0;}
+  .empty-state{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 20px; color:var(--text-muted); text-align:center;}
+  .empty-state i{font-size:26px; opacity:0.45;}
+  .empty-state p{margin:0; font-size:13px;}
   .b-attivo{background:#e1f5ee; color:#085041;}
   .b-sospesa{background:#e6f1fb; color:#0c447c;}
   .b-sparita{background:#faeeda; color:#633806;}
@@ -180,7 +198,7 @@
   .client-detail{display:none;}
   .client-detail.open{display:table-row;}
   .client-detail td{background:var(--surface-2); padding:12px 14px;}
-  .detail-box{display:flex; flex-wrap:wrap; align-items:center; gap:24px; font-size:13px; color:var(--text-secondary);}
+  .detail-box{display:flex; flex-wrap:wrap; align-items:center; gap:24px; font-size:13px; color:var(--text-secondary); animation:detailFade 0.18s ease;}
   .detail-box a{color:var(--accent); text-decoration:underline;}
   .detail-box a:hover{opacity:0.8;}
   .detail-box i{margin-right:6px; color:var(--text-muted);}
@@ -204,10 +222,10 @@
   .cr-select.st-rinnovato{background:#eaf3de; color:#3b6d11; border-color:#97c459;}
   .cr-select.st-non-rinnova{background:#fcebeb; color:#791f1f; border-color:#f09595;}
   .cr-note{height:32px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); font-size:12px; padding:0 8px; width:200px;}
-  .btn-add{display:inline-flex; align-items:center; gap:6px; background:var(--text); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; margin-bottom:12px;}
+  .btn-add{display:inline-flex; align-items:center; gap:6px; background:var(--btn-solid-bg); color:var(--btn-solid-fg); border:none; border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; margin-bottom:12px;}
   .btn-add:hover{opacity:0.88;}
   .btn-export{display:inline-flex; align-items:center; gap:6px; margin-left:8px; margin-bottom:12px;}
-  .btn-icon-add{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:none; background:var(--text); color:#fff; font-size:14px; cursor:pointer; flex-shrink:0;}
+  .btn-icon-add{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:none; background:var(--btn-solid-bg); color:var(--btn-solid-fg); font-size:14px; cursor:pointer; flex-shrink:0;}
   .btn-icon-add:hover{opacity:0.88;}
   .detail-actions{display:flex; gap:8px; margin-left:auto;}
   .btn-icon{display:inline-flex; align-items:center; gap:6px; background:none; border:0.5px solid var(--border-strong); border-radius:8px; padding:6px 10px; font-size:12px; color:var(--text-secondary); cursor:pointer;}
@@ -215,7 +233,8 @@
   .btn-delete-client:hover{color:#a32d2d; border-color:#f09595;}
   .azioni-cell{display:flex; gap:6px;}
   .modal-overlay{position:fixed; inset:0; background:rgba(15,15,14,0.5); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;}
-  .modal-box{background:var(--surface); border-radius:14px; padding:22px; width:min(600px,100%); max-height:88vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.3);}
+  .modal-overlay{animation:overlayFade 0.15s ease;}
+  .modal-box{background:var(--surface); border-radius:14px; padding:22px; width:min(600px,100%); max-height:88vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.3); animation:modalPop 0.18s ease;}
   .modal-box h2{margin:0 0 14px; font-size:17px; font-weight:500;}
   .cm-fields{display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;}
   .cm-field{display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-secondary);}
@@ -225,8 +244,8 @@
   }
   .cm-field textarea{height:auto; padding:8px 10px; resize:vertical;}
   .cm-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
-  .btn-secondary{background:var(--surface-2); color:var(--text); border:0.5px solid var(--border-strong); border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
-  .btn-primary{background:var(--text); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
+  .btn-secondary{background:var(--surface-2); color:var(--text); border:0.5px solid var(--border-strong); border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer; transition:background 0.15s ease, opacity 0.15s ease;}
+  .btn-primary{background:var(--btn-solid-bg); color:var(--btn-solid-fg); border:none; border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
   .settings-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); gap:16px; align-items:start;}
   .opt-group{margin-bottom:18px;}
   .opt-group:last-child{margin-bottom:0;}
@@ -237,7 +256,7 @@
   .opt-chip button:hover{background:var(--border); color:var(--text);}
   .opt-add{display:flex; gap:8px;}
   .opt-add input{flex:1; height:32px; border-radius:8px; border:0.5px solid var(--border-strong); background:var(--surface); color:var(--text); padding:0 10px; font-size:12px;}
-  .opt-add button{height:32px; border-radius:8px; border:none; background:var(--text); color:#fff; padding:0 12px; font-size:12px; cursor:pointer;}
+  .opt-add button{height:32px; border-radius:8px; border:none; background:var(--btn-solid-bg); color:var(--btn-solid-fg); padding:0 12px; font-size:12px; cursor:pointer;}
   .status-row{display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:10px;}
   .status-dot{width:9px; height:9px; border-radius:50%; background:var(--aqua); flex-shrink:0;}
   .status-dot.offline{background:var(--red);}
@@ -250,10 +269,10 @@
   .appearance-row .desc{font-size:12px; color:var(--text-muted); margin-top:2px;}
   .seg-toggle{display:flex; border:0.5px solid var(--border-strong); border-radius:8px; overflow:hidden;}
   .seg-toggle button{background:var(--surface); border:none; padding:7px 14px; font-size:12px; color:var(--text-secondary); cursor:pointer;}
-  .seg-toggle button.active{background:var(--text); color:#fff;}
+  .seg-toggle button.active{background:var(--btn-solid-bg); color:var(--btn-solid-fg);}
   .swatches{display:flex; gap:8px;}
   .swatch{width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent;}
-  .swatch.active{border-color:var(--text);}
+  .swatch.active{border-color:var(--btn-solid-bg);}
   #app-wrap{display:none;}
   #login-overlay{display:flex;}
   .login-box{width:min(360px,100%);}
@@ -267,6 +286,13 @@
   #logout-btn i{color:var(--red);}
   .conn-status{position:fixed; bottom:16px; right:16px; max-width:min(320px,calc(100vw - 32px)); background:#3a2410; color:#f0c26b; padding:10px 16px; border-radius:10px; font-size:12px; font-weight:500; display:none; align-items:center; gap:8px; box-shadow:0 8px 24px rgba(0,0,0,0.28); z-index:2000;}
   .conn-status.show{display:flex;}
+  .btn-danger{background:var(--red); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer;}
+  .toast-stack{position:fixed; bottom:16px; left:16px; display:flex; flex-direction:column; gap:8px; z-index:3000; max-width:min(360px, calc(100vw - 32px));}
+  .toast{display:flex; align-items:center; gap:10px; background:var(--surface); color:var(--text); border:0.5px solid var(--border-strong); border-radius:10px; padding:12px 16px; font-size:13px; box-shadow:0 12px 30px rgba(0,0,0,0.2); opacity:0; transform:translateY(8px); transition:opacity 0.2s ease, transform 0.2s ease;}
+  .toast.show{opacity:1; transform:translateY(0);}
+  .toast-success i{color:var(--aqua);}
+  .toast-error i{color:var(--red);}
+  .toast-info i{color:var(--blue);}
 </style>
 </head>
 <body>
@@ -355,6 +381,19 @@
 </div>
 
 <div class="conn-status" id="conn-status"><i class="fa-solid fa-triangle-exclamation"></i><span id="conn-status-text"></span></div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal-box" style="max-width:380px;">
+    <h2 id="confirm-title">Conferma</h2>
+    <p id="confirm-message" style="font-size:13px; color:var(--text-secondary); margin:0 0 18px; line-height:1.5;"></p>
+    <div class="cm-actions">
+      <button type="button" class="btn-secondary" id="confirm-cancel">Annulla</button>
+      <button type="button" class="btn-primary" id="confirm-ok">Conferma</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="client-modal-overlay">
   <div class="modal-box">
@@ -597,6 +636,17 @@ function applyAppearance(){
   document.body.classList.toggle('density-compact', density==='compact');
   const accent = localStorage.getItem('pg_accent') || '#e0245e';
   document.documentElement.style.setProperty('--accent', accent);
+  const theme = localStorage.getItem('pg_theme') || 'light';
+  document.body.classList.toggle('theme-dark', theme==='dark');
+}
+function surfaceColor(){
+  return (getComputedStyle(document.body).getPropertyValue('--surface') || '#ffffff').trim() || '#ffffff';
+}
+function refreshChartsForTheme(){
+  if(typeof renderedViews==='undefined') return;
+  if(renderedViews['analisi_gnocca']) renderGnoccaAnalisi();
+  if(renderedViews['analisi_no_tutor']) renderNoTutorAnalisi();
+  if(renderedViews['analisi_disattivate']) renderDisattivateAnalisi();
 }
 applyAppearance();
 function renderImpostazioni(){
@@ -604,6 +654,7 @@ function renderImpostazioni(){
   if(!el) return;
   const density = localStorage.getItem('pg_density') || 'comfortable';
   const accent = localStorage.getItem('pg_accent') || '#e0245e';
+  const theme = localStorage.getItem('pg_theme') || 'light';
   const online = navigator.onLine;
   el.innerHTML = `
     <div class="settings-grid">
@@ -636,6 +687,13 @@ function renderImpostazioni(){
         <div class="panel">
           <h2>Aspetto</h2>
           <div class="appearance-row">
+            <div><div class="label">Tema</div><div class="desc">Chiaro o scuro, solo su questo dispositivo</div></div>
+            <div class="seg-toggle">
+              <button type="button" data-theme="light" class="${theme==='light'?'active':''}"><i class="fa-solid fa-sun"></i></button>
+              <button type="button" data-theme="dark" class="${theme==='dark'?'active':''}"><i class="fa-solid fa-moon"></i></button>
+            </div>
+          </div>
+          <div class="appearance-row">
             <div><div class="label">Densita tabelle</div><div class="desc">Righe piu compatte o piu spaziate</div></div>
             <div class="seg-toggle">
               <button type="button" data-density="comfortable" class="${density==='comfortable'?'active':''}">Normale</button>
@@ -659,7 +717,7 @@ function renderImpostazioni(){
         const trashEntries = ['gnocca','no_tutor','disattivate'].flatMap(key=>
           Object.entries(clientOverrides[key]).filter(([id,ov])=>ov && ov._deleted).map(([id,ov])=>({dataset:key, id, ov}))
         );
-        if(!trashEntries.length) return '<p class="desc">Nessun cliente eliminato al momento.</p>';
+        if(!trashEntries.length) return emptyStateHtml('fa-trash-can', 'Nessun cliente eliminato al momento.');
         return `<div class="opt-chips" style="flex-direction:column; align-items:stretch; gap:8px;">
           ${trashEntries.map(({dataset,id,ov})=>`
             <div class="status-row" style="justify-content:space-between; margin-bottom:0;">
@@ -709,6 +767,14 @@ function renderImpostazioni(){
       localStorage.setItem('pg_density', btn.dataset.density);
       applyAppearance();
       renderImpostazioni();
+    });
+  });
+  el.querySelectorAll('[data-theme]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      localStorage.setItem('pg_theme', btn.dataset.theme);
+      applyAppearance();
+      renderImpostazioni();
+      refreshChartsForTheme();
     });
   });
   el.querySelectorAll('[data-accent]').forEach(sw=>{
@@ -773,6 +839,22 @@ const FIELD_CONFIGS = {
 let modalContext = null;
 function escAttr(v){ return (v==null?'':(v+'')).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 function escHtml(v){ return (v==null?'':(v+'')).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function getInitials(name){
+  const parts = (name||'').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return '?';
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+}
+function avatarHtml(name){
+  const cls = name ? ensureAutoBadgeClass(name) : 'b-perc-altro';
+  return `<span class="avatar ${cls}">${escHtml(getInitials(name))}</span>`;
+}
+function nameCellHtml(name){
+  return `<span class="client-name-cell">${avatarHtml(name)}${escHtml(name)}</span>`;
+}
+function emptyStateHtml(icon, message){
+  return `<div class="empty-state"><i class="fa-solid ${icon}"></i><p>${escHtml(message)}</p></div>`;
+}
 function mailtoHtml(v){
   if(!v) return 'Email non disponibile';
   return `<a href="mailto:${escAttr(v)}">${escHtml(v)}</a>`;
@@ -782,6 +864,40 @@ function telHtml(v){
   const clean = (v+'').replace(/[^0-9+]/g,'');
   return `<a href="tel:${escAttr(clean)}">${escHtml(v)}</a>`;
 }
+function showToast(message, type){
+  type = type || 'info';
+  const stack = document.getElementById('toast-stack');
+  if(!stack) return;
+  const icon = type==='success' ? 'fa-circle-check' : type==='error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<i class="fa-solid ${icon}"></i><span></span>`;
+  el.querySelector('span').textContent = message;
+  stack.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=>el.remove(), 250);
+  }, 3500);
+}
+let confirmResolver = null;
+function showConfirm(message, opts){
+  opts = opts || {};
+  document.getElementById('confirm-title').textContent = opts.title || 'Conferma';
+  document.getElementById('confirm-message').textContent = message;
+  const okBtn = document.getElementById('confirm-ok');
+  okBtn.textContent = opts.okLabel || 'Conferma';
+  okBtn.className = opts.danger ? 'btn-danger' : 'btn-primary';
+  document.getElementById('confirm-overlay').style.display = 'flex';
+  return new Promise(resolve=>{ confirmResolver = resolve; });
+}
+function closeConfirm(result){
+  document.getElementById('confirm-overlay').style.display = 'none';
+  if(confirmResolver){ confirmResolver(result); confirmResolver = null; }
+}
+document.getElementById('confirm-cancel').addEventListener('click', ()=>closeConfirm(false));
+document.getElementById('confirm-ok').addEventListener('click', ()=>closeConfirm(true));
+document.getElementById('confirm-overlay').addEventListener('click', (e)=>{ if(e.target.id==='confirm-overlay') closeConfirm(false); });
 function downloadCSV(filename, rows, columns){
   const escCsv = v=>{
     const s = (v==null?'':String(v));
@@ -867,17 +983,23 @@ function closeClientModal(){
   document.getElementById('client-modal-overlay').style.display = 'none';
   modalContext = null;
 }
-function deleteClient(dataset, id){
-  if(!confirm('Eliminare questo cliente? La modifica è condivisa con tutto il team. Potrai ripristinarla dal Cestino in Impostazioni.')) return;
+async function deleteClient(dataset, id){
+  const ok = await showConfirm('Eliminare questo cliente? La modifica è condivisa con tutto il team. Potrai ripristinarla dal Cestino in Impostazioni.', {okLabel:'Elimina', danger:true});
+  if(!ok) return;
   const record = RAW[dataset].find(r=>clientDocId(r)===id) || {};
   const payload = {...record, _deleted:true};
   delete payload._id;
-  setDoc(doc(db, CLIENTI_COLLECTIONS[dataset], id), payload);
+  setDoc(doc(db, CLIENTI_COLLECTIONS[dataset], id), payload)
+    .then(()=>showToast('Cliente eliminata.', 'success'))
+    .catch(err=>showToast('Errore: ' + err.message, 'error'));
 }
 function restoreClient(dataset, id){
   setDoc(doc(db, CLIENTI_COLLECTIONS[dataset], id), {_deleted:false}, {merge:true})
-    .then(()=>{ if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni(); })
-    .catch(err=>alert('Errore nel ripristino: ' + err.message));
+    .then(()=>{
+      if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni();
+      showToast('Cliente ripristinata.', 'success');
+    })
+    .catch(err=>showToast('Errore nel ripristino: ' + err.message, 'error'));
 }
 function moveGnoccaToDisattivate(gnoccaPayload, oldGnoccaId, statoFinale){
   const today = new Date();
@@ -908,7 +1030,7 @@ function moveGnoccaToDisattivate(gnoccaPayload, oldGnoccaId, statoFinale){
 }
 document.getElementById('cm-cancel').addEventListener('click', closeClientModal);
 document.getElementById('client-modal-overlay').addEventListener('click', (e)=>{ if(e.target.id==='client-modal-overlay') closeClientModal(); });
-document.getElementById('cm-save').addEventListener('click', ()=>{
+document.getElementById('cm-save').addEventListener('click', async ()=>{
   if(!modalContext) return;
   const {dataset, id, isNew} = modalContext;
   const cfg = FIELD_CONFIGS[dataset];
@@ -923,29 +1045,28 @@ document.getElementById('cm-save').addEventListener('click', ()=>{
     else{ el.style.borderColor = ''; }
     payload[f.key] = v;
   });
-  if(!valid){ alert('Il campo Cliente è obbligatorio.'); return; }
+  if(!valid){ showToast('Il campo Cliente è obbligatorio.', 'error'); return; }
 
   if(isNew){
     const nameNorm = (payload.cliente||'').trim().toLowerCase();
     const dup = nameNorm && RAW[dataset].find(r=>(r.cliente||'').trim().toLowerCase()===nameNorm);
     if(dup){
-      const proceed = confirm(`Esiste già una cliente con questo nome in questo elenco (${dup.cliente}, inizio ${dup.inizio||'n/d'}).
-Vuoi salvare comunque un nuovo cliente?`);
+      const proceed = await showConfirm(`Esiste già una cliente con questo nome in questo elenco (${dup.cliente}, inizio ${dup.inizio||'n/d'}). Vuoi salvare comunque un nuovo cliente?`, {okLabel:'Salva comunque'});
       if(!proceed) return;
     }
   }
 
   if(dataset==='gnocca' && (payload.stato==='ABBANDONO' || payload.stato==='NON RINNOVO')){
     moveGnoccaToDisattivate(payload, isNew ? null : id, payload.stato)
-      .then(()=>{ closeClientModal(); alert('Cliente spostata in Disattivate.'); })
-      .catch(err=>alert('Errore nel salvataggio: ' + err.message));
+      .then(()=>{ closeClientModal(); showToast('Cliente spostata in Disattivate.', 'success'); })
+      .catch(err=>showToast('Errore nel salvataggio: ' + err.message, 'error'));
     return;
   }
 
   const docId = isNew ? (slug(payload.cliente) + '-' + Date.now()) : id;
   setDoc(doc(db, CLIENTI_COLLECTIONS[dataset], docId), payload)
-    .then(()=>closeClientModal())
-    .catch(err=>alert('Errore nel salvataggio: ' + err.message));
+    .then(()=>{ closeClientModal(); showToast('Cliente salvata.', 'success'); })
+    .catch(err=>showToast('Errore nel salvataggio: ' + err.message, 'error'));
 });
 const COLORS = {blue:'#2a78d6',orange:'#eb6834',aqua:'#1baf7a',yellow:'#eda100',magenta:'#e87ba4',green:'#008300',violet:'#4a3aa7',red:'#e34948',gray:'#9a998f'};
 const palette = [COLORS.blue,COLORS.orange,COLORS.aqua,COLORS.yellow,COLORS.magenta,COLORS.violet,COLORS.red,COLORS.gray];
@@ -1134,17 +1255,17 @@ function renderGnoccaAnalisi(){
   const statoM = countBy(data,'stato');
   const statoColors = colorsFor(Object.keys(statoM), STATO_COLORS);
   renderLegend(document.getElementById('g-legend-stato'), Object.keys(statoM), Object.values(statoM), statoColors, false);
-  makeChart('g-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:statoColors, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('g-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:statoColors, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const situM = countBy(data,'situazione');
   const situColors = colorsFor(Object.keys(situM), SITU_COLORS);
   renderLegend(document.getElementById('g-legend-situ'), Object.keys(situM), Object.values(situM), situColors, false);
-  makeChart('g-chart-situ', {type:'doughnut', data:{labels:Object.keys(situM), datasets:[{data:Object.values(situM), backgroundColor:situColors, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('g-chart-situ', {type:'doughnut', data:{labels:Object.keys(situM), datasets:[{data:Object.values(situM), backgroundColor:situColors, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const pagM = sumBy(data,'pagamento','importo');
   const pagLabels = Object.keys(pagM); const pagValues = Object.values(pagM).map(v=>Math.round(v));
   renderLegend(document.getElementById('g-legend-pag'), pagLabels, pagValues, palette, true);
-  makeChart('g-chart-pag', {type:'doughnut', data:{labels:pagLabels, datasets:[{data:pagValues, backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('g-chart-pag', {type:'doughnut', data:{labels:pagLabels, datasets:[{data:pagValues, backgroundColor:palette, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const monthM = {};
   data.forEach(d=>{ const dt=parseDate(d.inizio); if(!dt) return; const k=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`; monthM[k]=(monthM[k]||0)+d.importo; });
@@ -1223,9 +1344,13 @@ function renderGnoccaClienti(){
       if(va<vb) return -1*sort.dir; if(va>vb) return 1*sort.dir; return 0;
     });
     document.getElementById('g-count').textContent = `${rows.length} clienti su ${data.length}`;
+    if(!rows.length){
+      document.getElementById('g-tbody').innerHTML = `<tr><td colspan="8">${emptyStateHtml('fa-user-slash', data.length ? 'Nessun cliente trovato con questi filtri.' : 'Nessun cliente in questo elenco.')}</td></tr>`;
+      return;
+    }
     document.getElementById('g-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
-        <td data-label="Cliente">${escHtml(d.cliente)}</td>
+        <td data-label="Cliente">${nameCellHtml(d.cliente)}</td>
         <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span></td>
         <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span></td>
         <td data-label="Inizio">${escHtml(d.inizio)}</td>
@@ -1439,12 +1564,12 @@ function renderNoTutorAnalisi(){
   const statoM = countBy(data,'stato');
   const statoColors = colorsFor(Object.keys(statoM), STATO_COLORS);
   renderLegend(document.getElementById('nt-legend-stato'), Object.keys(statoM), Object.values(statoM), statoColors, false);
-  makeChart('nt-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:statoColors, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('nt-chart-stato', {type:'doughnut', data:{labels:Object.keys(statoM), datasets:[{data:Object.values(statoM), backgroundColor:statoColors, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const pagM = sumBy(data,'pagamento','importo');
   const pagLabels = Object.keys(pagM); const pagValues = Object.values(pagM).map(v=>Math.round(v));
   renderLegend(document.getElementById('nt-legend-pag'), pagLabels, pagValues, palette, true);
-  makeChart('nt-chart-pag', {type:'doughnut', data:{labels:pagLabels, datasets:[{data:pagValues, backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('nt-chart-pag', {type:'doughnut', data:{labels:pagLabels, datasets:[{data:pagValues, backgroundColor:palette, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const monthM = {};
   data.forEach(d=>{ const dt=parseDate(d.inizio); if(!dt) return; const k=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`; monthM[k]=(monthM[k]||0)+d.importo; });
@@ -1535,9 +1660,13 @@ function renderNoTutorClienti(){
       if(va<vb) return -1*sort.dir; if(va>vb) return 1*sort.dir; return 0;
     });
     document.getElementById('nt-count').textContent = `${rows.length} clienti su ${data.length}`;
+    if(!rows.length){
+      document.getElementById('nt-tbody').innerHTML = `<tr><td colspan="8">${emptyStateHtml('fa-user-slash', data.length ? 'Nessun cliente trovato con questi filtri.' : 'Nessun cliente in questo elenco.')}</td></tr>`;
+      return;
+    }
     document.getElementById('nt-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
-        <td data-label="Cliente">${escHtml(d.cliente)}</td>
+        <td data-label="Cliente">${nameCellHtml(d.cliente)}</td>
         <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span></td>
         <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span></td>
         <td data-label="Inizio">${escHtml(d.inizio)}</td>
@@ -1617,11 +1746,11 @@ function renderDisattivateAnalisi(){
 
   const percM = countBy(data,'percorso');
   renderLegend(document.getElementById('d-legend-perc'), Object.keys(percM), Object.values(percM), palette, false);
-  makeChart('d-chart-perc', {type:'doughnut', data:{labels:Object.keys(percM), datasets:[{data:Object.values(percM), backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('d-chart-perc', {type:'doughnut', data:{labels:Object.keys(percM), datasets:[{data:Object.values(percM), backgroundColor:palette, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const pagM = countBy(data,'pagamento');
   renderLegend(document.getElementById('d-legend-pag'), Object.keys(pagM), Object.values(pagM), palette, false);
-  makeChart('d-chart-pag', {type:'doughnut', data:{labels:Object.keys(pagM), datasets:[{data:Object.values(pagM), backgroundColor:palette, borderWidth:2, borderColor:'#ffffff'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+  makeChart('d-chart-pag', {type:'doughnut', data:{labels:Object.keys(pagM), datasets:[{data:Object.values(pagM), backgroundColor:palette, borderWidth:2, borderColor:surfaceColor()}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
 
   const vendCountEntries = Object.entries(vendM0).sort((a,b)=>b[1]-a[1]);
   makeChart('d-chart-venditore', {type:'bar', data:{labels:vendCountEntries.map(e=>e[0]), datasets:[{label:'Clienti', data:vendCountEntries.map(e=>e[1]), backgroundColor:COLORS.red, borderRadius:4, maxBarThickness:22}]}, options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{stepSize:1}, grid:{color:'#e4e3dd'}}, y:{grid:{display:false}}}}});
@@ -1699,9 +1828,13 @@ function renderDisattivateClienti(){
       if(va<vb) return -1*sort.dir; if(va>vb) return 1*sort.dir; return 0;
     });
     document.getElementById('d-count').textContent = `${rows.length} clienti su ${data.length}`;
+    if(!rows.length){
+      document.getElementById('d-tbody').innerHTML = `<tr><td colspan="6">${emptyStateHtml('fa-user-slash', data.length ? 'Nessun cliente trovato con questi filtri.' : 'Nessun cliente in questo elenco.')}</td></tr>`;
+      return;
+    }
     document.getElementById('d-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
-        <td data-label="Cliente">${escHtml(d.cliente)}</td>
+        <td data-label="Cliente">${nameCellHtml(d.cliente)}</td>
         <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span></td>
         <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span></td>
         <td data-label="Inizio">${escHtml(d.inizio)}</td>
@@ -1773,7 +1906,7 @@ function renderRiepilogoDetail(){
             <span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span>
             <span class="rd-fine">${escHtml(extra)}</span>
           </div>`;
-        }).join('') : '<p class="desc">Nessun cliente in questa categoria.</p>'}
+        }).join('') : emptyStateHtml('fa-circle-check', 'Nessun cliente in questa categoria.')}
       </div>
     </div>
   `;
@@ -1878,6 +2011,8 @@ document.querySelectorAll('#section-analisi .pill-btn').forEach(b=>{
 
 document.addEventListener('keydown', (e)=>{
   if(e.key!=='Escape') return;
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  if(confirmOverlay && confirmOverlay.style.display==='flex'){ closeConfirm(false); return; }
   const modalOverlay = document.getElementById('client-modal-overlay');
   if(modalOverlay && modalOverlay.style.display==='flex'){ closeClientModal(); return; }
   if(typeof openDetailFilter!=='undefined' && openDetailFilter!==null){ closeRiepilogoDetail(); return; }
