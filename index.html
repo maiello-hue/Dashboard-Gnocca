@@ -123,13 +123,17 @@
   .scadenze-mini-chevron{font-size:13px; color:var(--text-secondary); transition:transform 0.2s ease;}
   .scadenze-mini-chevron.open{transform:rotate(180deg);}
   .riepilogo-detail-head h2{margin:0;}
-  .riepilogo-detail-list{max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;}
+  .riepilogo-detail-list{max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-right:16px;}
   .riepilogo-detail-row{display:flex; align-items:center; gap:20px; padding:8px 4px; border-bottom:0.5px solid var(--border); font-size:13px; flex-wrap:wrap;}
   .riepilogo-detail-row:last-child{border-bottom:none;}
   .rd-nome{font-weight:500; flex:0 0 200px; width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .rd-badge-stato{flex:0 0 110px; width:110px; text-align:center;}
   .rd-badge-percorso{flex:0 0 130px; width:130px; text-align:center;}
-  .rd-fine{margin-left:auto; color:var(--text-secondary); font-size:12px;}
+  .rd-fine{margin-left:auto; color:var(--text-secondary); font-size:12px; white-space:nowrap;}
+  .rd-gg{flex:0 0 auto; margin-left:8px; white-space:nowrap;}
+  .badge-gg-urgent{background:#fcebeb; color:#791f1f;}
+  .badge-gg-soon{background:#faeeda; color:#633806;}
+  .badge-gg-ok{background:var(--surface-2); color:var(--text-muted);}
   .panel{background:var(--surface); border:0.5px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px;}
   .panel h2{font-size:16px; font-weight:500; margin:0 0 4px;}
   .panel .desc{font-size:12px; color:var(--text-muted); margin:0 0 12px;}
@@ -2051,12 +2055,13 @@ function computeCardClients(filter){
   if(filter==='') return g;
   return g.filter(x=>x.stato===filter);
 }
-function riepilogoRowHtml(d, extra){
+function riepilogoRowHtml(d, extra, gg){
   return `<div class="riepilogo-detail-row">
     <span class="rd-nome">${escHtml(d.cliente)}</span>
     <span class="badge rd-badge-stato ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span>
     <span class="badge rd-badge-percorso ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span>
     <span class="rd-fine">${escHtml(extra)}</span>
+    ${gg ? `<span class="badge rd-gg badge-${gg.cls}">${escHtml(gg.label)}</span>` : ''}
   </div>`;
 }
 let openDetailFilter = null;
@@ -2094,8 +2099,8 @@ function renderScadenzeMini(){
   if(count) count.textContent = items.length ? `· ${items.length}` : '';
   list.innerHTML = items.length
     ? items.map(d=>{
-        const {label} = contattiGgInfo(parseDate(d.fine), today);
-        return riepilogoRowHtml(d, `${d.fine} · ${label}`);
+        const {cls, label} = contattiGgInfo(parseDate(d.fine), today);
+        return riepilogoRowHtml(d, d.fine, {cls, label});
       }).join('')
     : emptyStateHtml('fa-circle-check', 'Nessuna scadenza nei prossimi 30 giorni.');
 }
