@@ -283,6 +283,9 @@
   .wa-open-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:14px; background:#25d366; color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:13px; cursor:pointer; transition:opacity 0.15s ease;}
   .wa-open-btn:hover{opacity:0.88;}
   .settings-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); gap:16px; align-items:start;}
+  .opt-tabs{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .opt-tab{background:var(--surface-2); color:var(--text-secondary); border:0.5px solid var(--border-strong); border-radius:999px; padding:6px 14px; font-size:12px; cursor:pointer; transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;}
+  .opt-tab.active{background:var(--btn-solid-bg); border-color:var(--btn-solid-bg); color:var(--btn-solid-fg);}
   .opt-group{margin-bottom:18px;}
   .opt-group:last-child{margin-bottom:0;}
   .opt-group h3{font-size:13px; font-weight:500; margin:0 0 8px;}
@@ -720,6 +723,7 @@ function refreshChartsForTheme(){
   if(renderedViews['analisi_disattivate']) renderDisattivateAnalisi();
 }
 applyAppearance();
+let optListActiveTab = null;
 function renderImpostazioni(){
   const el = document.getElementById('impostazioni-content');
   if(!el) return;
@@ -727,23 +731,25 @@ function renderImpostazioni(){
   const accent = localStorage.getItem('pg_accent') || '#e0245e';
   const theme = localStorage.getItem('pg_theme') || 'light';
   const online = navigator.onLine;
+  if(!optListActiveTab || !OPTION_LISTS[optListActiveTab]) optListActiveTab = Object.keys(OPTION_LISTS)[0];
+  const activeKey = optListActiveTab;
   el.innerHTML = `
     <div class="settings-grid">
       <div class="panel">
         <h2>Liste a tendina</h2>
         <p class="desc">Aggiungi o rimuovi le opzioni disponibili nei menu a tendina del modulo cliente. Sincronizzato con tutto il team.</p>
-        ${Object.keys(OPTION_LISTS).map(key=>`
-          <div class="opt-group">
-            <h3>${OPTION_LABELS[key]}</h3>
-            <div class="opt-chips">
-              ${OPTION_LISTS[key].map(v=>`<span class="opt-chip">${escHtml(v)}<button type="button" class="opt-remove" data-key="${key}" data-value="${escAttr(v)}"><i class="fa-solid fa-xmark"></i></button></span>`).join('') || '<span class="desc">Nessuna opzione</span>'}
-            </div>
-            <div class="opt-add">
-              <input type="text" placeholder="Nuova opzione..." data-optinput="${key}">
-              <button type="button" class="opt-addbtn" data-key="${key}">Aggiungi</button>
-            </div>
+        <div class="opt-tabs">
+          ${Object.keys(OPTION_LISTS).map(key=>`<button type="button" class="opt-tab ${key===activeKey?'active':''}" data-opttab="${key}">${OPTION_LABELS[key]}</button>`).join('')}
+        </div>
+        <div class="opt-group">
+          <div class="opt-chips">
+            ${OPTION_LISTS[activeKey].map(v=>`<span class="opt-chip">${escHtml(v)}<button type="button" class="opt-remove" data-key="${activeKey}" data-value="${escAttr(v)}"><i class="fa-solid fa-xmark"></i></button></span>`).join('') || '<span class="desc">Nessuna opzione</span>'}
           </div>
-        `).join('')}
+          <div class="opt-add">
+            <input type="text" placeholder="Nuova opzione..." data-optinput="${activeKey}">
+            <button type="button" class="opt-addbtn" data-key="${activeKey}">Aggiungi</button>
+          </div>
+        </div>
       </div>
       <div>
         <div class="panel">
@@ -817,6 +823,12 @@ function renderImpostazioni(){
   });
   el.querySelectorAll('.btn-restore-client').forEach(btn=>{
     btn.addEventListener('click', ()=>restoreClient(btn.dataset.dataset, btn.dataset.id));
+  });
+  el.querySelectorAll('.opt-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      optListActiveTab = btn.dataset.opttab;
+      renderImpostazioni();
+    });
   });
   el.querySelectorAll('.opt-remove').forEach(btn=>{
     btn.addEventListener('click', ()=>removeOptionValue(btn.dataset.key, btn.dataset.value));
