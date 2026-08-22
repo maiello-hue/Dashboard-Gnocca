@@ -2029,6 +2029,16 @@ function clientsByStatoInMonth(stato, monthKey){
     return monthKeyFromDate(dt)===monthKey;
   });
 }
+const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'In percorso', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandonate', 'SPARITA':'Sparite', 'NON RINNOVO':'Non rinnovo'};
+const KPI_MONTHLY_FILTERS = ['ABBANDONO', 'NON RINNOVO'];
+function riepilogoDetailLabel(filter){
+  const base = KPI_LABELS[filter] ?? '';
+  if(KPI_MONTHLY_FILTERS.includes(filter)){
+    const monthSub = dashboardMonthDate.toLocaleDateString('it-IT', {month:'short', year:'numeric'});
+    return `${base} (${monthSub})`;
+  }
+  return base;
+}
 function renderDashMonthPicker(){
   const label = document.getElementById('dash-month-current');
   if(!label) return;
@@ -2065,7 +2075,6 @@ function riepilogoRowHtml(d, extra, gg){
   </div>`;
 }
 let openDetailFilter = null;
-let openDetailLabel = '';
 function renderRiepilogoDetail(){
   const panel = document.getElementById('riepilogo-detail');
   if(openDetailFilter===null){ panel.style.display='none'; panel.innerHTML=''; return; }
@@ -2073,7 +2082,7 @@ function renderRiepilogoDetail(){
   panel.innerHTML = `
     <div class="panel riepilogo-detail-panel">
       <div class="riepilogo-detail-head">
-        <h2>${openDetailLabel} (${clients.length})</h2>
+        <h2>${riepilogoDetailLabel(openDetailFilter)} (${clients.length})</h2>
         <button type="button" class="btn-icon" id="riepilogo-detail-close"><i class="fa-solid fa-xmark"></i>Chiudi</button>
       </div>
       <div class="riepilogo-detail-list">
@@ -2086,7 +2095,6 @@ function renderRiepilogoDetail(){
 }
 function closeRiepilogoDetail(){
   openDetailFilter = null;
-  openDetailLabel = '';
   renderRiepilogoDetail();
   document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.remove('kpi-open'));
 }
@@ -2198,7 +2206,6 @@ document.getElementById('riepilogo-globale').addEventListener('click', (e)=>{
   const filter = card.dataset.filter;
   if(openDetailFilter===filter){ closeRiepilogoDetail(); return; }
   openDetailFilter = filter;
-  openDetailLabel = card.dataset.label;
   renderRiepilogoDetail();
   document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.toggle('kpi-open', c.dataset.filter===filter));
 });
