@@ -918,14 +918,16 @@ const FIELD_CONFIGS = {
   no_tutor: [
     {key:'cliente', label:'Cliente', type:'text', required:true, group:'Anagrafica'},
     {key:'stato', label:'Stato', type:'text', group:'Anagrafica'},
-    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true, group:'Percorso'},
-    {key:'inizio', label:'Inizio', type:'date', group:'Percorso'},
-    {key:'fine', label:'Fine', type:'date', group:'Percorso'},
-    {key:'pagamento', label:'Pagamento', type:'text', group:'Pagamento'},
-    {key:'importo', label:'Importo (EUR)', type:'number', group:'Pagamento'},
-    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Pagamento'},
-    {key:'trainer', label:'Trainer', type:'select', options:TRAINER_OPTIONS, allowBlank:true, group:'Team'},
-    {key:'nutrizionista', label:'Nutrizionista', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Team'},
+    {key:'email', label:'Email', type:'text', group:'Anagrafica'},
+    {key:'telefono', label:'Telefono', type:'text', group:'Anagrafica'},
+    {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true, group:'Abbonamento'},
+    {key:'inizio', label:'Inizio', type:'date', group:'Abbonamento'},
+    {key:'fine', label:'Fine', type:'date', group:'Abbonamento'},
+    {key:'importo', label:'Importo (EUR)', type:'number', group:'Abbonamento'},
+    {key:'pagamento', label:'Pagamento', type:'text', group:'Abbonamento'},
+    {key:'trainer', label:'Trainer', type:'select', options:TRAINER_OPTIONS, allowBlank:true, group:'Assegnazioni'},
+    {key:'nutrizionista', label:'Nutrizionista', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Assegnazioni'},
+    {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Assegnazioni'},
   ],
   disattivate: [
     {key:'cliente', label:'Cliente', type:'text', required:true, group:'Anagrafica'},
@@ -1036,7 +1038,8 @@ const CSV_COLUMNS = {
   ],
   no_tutor: [
     {label:'Cliente', key:'cliente'}, {label:'Stato', key:'stato'}, {label:'Percorso', key:'percorso'},
-    {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Pagamento', key:'pagamento'},
+    {label:'Inizio', key:'inizio'}, {label:'Fine', key:'fine'}, {label:'Email', key:'email'},
+    {label:'Telefono', key:'telefono'}, {label:'Pagamento', key:'pagamento'},
     {label:'Importo', key:'importo'}, {label:'Venditore', key:'venditore'}, {label:'Trainer', key:'trainer'},
     {label:'Nutrizionista', key:'nutrizionista'},
   ],
@@ -1815,6 +1818,8 @@ function renderNoTutorClienti(){
       <tr class="client-detail">
         <td colspan="8">
           <div class="detail-box">
+            <span><i class="fa-solid fa-envelope"></i>${mailtoHtml(d.email)}</span>
+            <span><i class="fa-solid fa-phone"></i>${telWaHtml(d)}</span>
             <span><i class="fa-solid fa-credit-card"></i>${d.pagamento ? escHtml(d.pagamento) : 'Pagamento non disponibile'}</span>
             <span><i class="fa-solid fa-coins"></i>${fmtEUR(d.importo)}</span>
             <span class="detail-actions">
