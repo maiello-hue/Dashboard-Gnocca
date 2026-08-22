@@ -286,6 +286,9 @@
   .opt-tabs{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
   .opt-tab{background:var(--surface-2); color:var(--text-secondary); border:0.5px solid var(--border-strong); border-radius:999px; padding:6px 14px; font-size:12px; cursor:pointer; transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;}
   .opt-tab.active{background:var(--btn-solid-bg); border-color:var(--btn-solid-bg); color:var(--btn-solid-fg);}
+  .settings-tabs{margin-bottom:20px;}
+  .settings-tabs .opt-tab{font-size:13px; padding:8px 16px; gap:6px;}
+  .settings-tabs .opt-tab i{margin-right:4px;}
   .opt-group{margin-bottom:18px;}
   .opt-group:last-child{margin-bottom:0;}
   .opt-group h3{font-size:13px; font-weight:500; margin:0 0 8px;}
@@ -724,6 +727,14 @@ function refreshChartsForTheme(){
 }
 applyAppearance();
 let optListActiveTab = null;
+const SETTINGS_SECTIONS = [
+  {key:'liste', label:'Liste a tendina', icon:'fa-list'},
+  {key:'sync', label:'Sincronizzazione', icon:'fa-arrows-rotate'},
+  {key:'aspetto', label:'Aspetto', icon:'fa-palette'},
+  {key:'cestino', label:'Cestino', icon:'fa-trash-can'},
+  {key:'export', label:'Esportazione', icon:'fa-file-csv'},
+];
+let impostazioniActiveSection = null;
 function renderImpostazioni(){
   const el = document.getElementById('impostazioni-content');
   if(!el) return;
@@ -733,60 +744,68 @@ function renderImpostazioni(){
   const online = navigator.onLine;
   if(!optListActiveTab || !OPTION_LISTS[optListActiveTab]) optListActiveTab = Object.keys(OPTION_LISTS)[0];
   const activeKey = optListActiveTab;
+  if(!impostazioniActiveSection || !SETTINGS_SECTIONS.some(s=>s.key===impostazioniActiveSection)) impostazioniActiveSection = SETTINGS_SECTIONS[0].key;
+  const activeSection = impostazioniActiveSection;
   el.innerHTML = `
-    <div class="settings-grid">
-      <div class="panel">
-        <h2>Liste a tendina</h2>
-        <p class="desc">Aggiungi o rimuovi le opzioni disponibili nei menu a tendina del modulo cliente. Sincronizzato con tutto il team.</p>
-        <div class="opt-tabs">
-          ${Object.keys(OPTION_LISTS).map(key=>`<button type="button" class="opt-tab ${key===activeKey?'active':''}" data-opttab="${key}">${OPTION_LABELS[key]}</button>`).join('')}
-        </div>
-        <div class="opt-group">
-          <div class="opt-chips">
-            ${OPTION_LISTS[activeKey].map(v=>`<span class="opt-chip">${escHtml(v)}<button type="button" class="opt-remove" data-key="${activeKey}" data-value="${escAttr(v)}"><i class="fa-solid fa-xmark"></i></button></span>`).join('') || '<span class="desc">Nessuna opzione</span>'}
-          </div>
-          <div class="opt-add">
-            <input type="text" placeholder="Nuova opzione..." data-optinput="${activeKey}">
-            <button type="button" class="opt-addbtn" data-key="${activeKey}">Aggiungi</button>
-          </div>
-        </div>
+    <div class="opt-tabs settings-tabs">
+      ${SETTINGS_SECTIONS.map(s=>`<button type="button" class="opt-tab ${s.key===activeSection?'active':''}" data-settingstab="${s.key}"><i class="fa-solid ${s.icon}"></i> ${s.label}</button>`).join('')}
+    </div>
+    ${activeSection==='liste' ? `
+    <div class="panel">
+      <h2>Liste a tendina</h2>
+      <p class="desc">Aggiungi o rimuovi le opzioni disponibili nei menu a tendina del modulo cliente. Sincronizzato con tutto il team.</p>
+      <div class="opt-tabs">
+        ${Object.keys(OPTION_LISTS).map(key=>`<button type="button" class="opt-tab ${key===activeKey?'active':''}" data-opttab="${key}">${OPTION_LABELS[key]}</button>`).join('')}
       </div>
-      <div>
-        <div class="panel">
-          <h2>Sincronizzazione</h2>
-          <div class="status-row"><span class="status-dot ${online?'':'offline'}"></span>${online ? 'Connesso - dati condivisi in tempo reale' : 'Offline - le modifiche verranno sincronizzate al ritorno online'}</div>
-          <div class="settings-counts">
-            <div class="settings-count"><b>${RAW.gnocca.length}</b>Gnocca</div>
-            <div class="settings-count"><b>${RAW.no_tutor.length}</b>No Tutor</div>
-            <div class="settings-count"><b>${RAW.disattivate.length}</b>Disattivate</div>
-          </div>
+      <div class="opt-group">
+        <div class="opt-chips">
+          ${OPTION_LISTS[activeKey].map(v=>`<span class="opt-chip">${escHtml(v)}<button type="button" class="opt-remove" data-key="${activeKey}" data-value="${escAttr(v)}"><i class="fa-solid fa-xmark"></i></button></span>`).join('') || '<span class="desc">Nessuna opzione</span>'}
         </div>
-        <div class="panel">
-          <h2>Aspetto</h2>
-          <div class="appearance-row">
-            <div><div class="label">Tema</div><div class="desc">Chiaro o scuro, solo su questo dispositivo</div></div>
-            <div class="seg-toggle">
-              <button type="button" data-theme="light" class="${theme==='light'?'active':''}"><i class="fa-solid fa-sun"></i></button>
-              <button type="button" data-theme="dark" class="${theme==='dark'?'active':''}"><i class="fa-solid fa-moon"></i></button>
-            </div>
-          </div>
-          <div class="appearance-row">
-            <div><div class="label">Densita tabelle</div><div class="desc">Righe piu compatte o piu spaziate</div></div>
-            <div class="seg-toggle">
-              <button type="button" data-density="comfortable" class="${density==='comfortable'?'active':''}">Normale</button>
-              <button type="button" data-density="compact" class="${density==='compact'?'active':''}">Compatta</button>
-            </div>
-          </div>
-          <div class="appearance-row">
-            <div><div class="label">Colore evidenziazione menu</div><div class="desc">Solo su questo dispositivo</div></div>
-            <div class="swatches">
-              ${ACCENT_COLORS.map(c=>`<span class="swatch ${c===accent?'active':''}" data-accent="${c}" style="background:${c};"></span>`).join('')}
-            </div>
-          </div>
+        <div class="opt-add">
+          <input type="text" placeholder="Nuova opzione..." data-optinput="${activeKey}">
+          <button type="button" class="opt-addbtn" data-key="${activeKey}">Aggiungi</button>
         </div>
       </div>
     </div>
-    <div class="panel" style="margin-top:16px;">
+    ` : ''}
+    ${activeSection==='sync' ? `
+    <div class="panel">
+      <h2>Sincronizzazione</h2>
+      <div class="status-row"><span class="status-dot ${online?'':'offline'}"></span>${online ? 'Connesso - dati condivisi in tempo reale' : 'Offline - le modifiche verranno sincronizzate al ritorno online'}</div>
+      <div class="settings-counts">
+        <div class="settings-count"><b>${RAW.gnocca.length}</b>Gnocca</div>
+        <div class="settings-count"><b>${RAW.no_tutor.length}</b>No Tutor</div>
+        <div class="settings-count"><b>${RAW.disattivate.length}</b>Disattivate</div>
+      </div>
+    </div>
+    ` : ''}
+    ${activeSection==='aspetto' ? `
+    <div class="panel">
+      <h2>Aspetto</h2>
+      <div class="appearance-row">
+        <div><div class="label">Tema</div><div class="desc">Chiaro o scuro, solo su questo dispositivo</div></div>
+        <div class="seg-toggle">
+          <button type="button" data-theme="light" class="${theme==='light'?'active':''}"><i class="fa-solid fa-sun"></i></button>
+          <button type="button" data-theme="dark" class="${theme==='dark'?'active':''}"><i class="fa-solid fa-moon"></i></button>
+        </div>
+      </div>
+      <div class="appearance-row">
+        <div><div class="label">Densita tabelle</div><div class="desc">Righe piu compatte o piu spaziate</div></div>
+        <div class="seg-toggle">
+          <button type="button" data-density="comfortable" class="${density==='comfortable'?'active':''}">Normale</button>
+          <button type="button" data-density="compact" class="${density==='compact'?'active':''}">Compatta</button>
+        </div>
+      </div>
+      <div class="appearance-row">
+        <div><div class="label">Colore evidenziazione menu</div><div class="desc">Solo su questo dispositivo</div></div>
+        <div class="swatches">
+          ${ACCENT_COLORS.map(c=>`<span class="swatch ${c===accent?'active':''}" data-accent="${c}" style="background:${c};"></span>`).join('')}
+        </div>
+      </div>
+    </div>
+    ` : ''}
+    ${activeSection==='cestino' ? `
+    <div class="panel">
       <h2>Cestino</h2>
       <p class="desc">Clienti eliminati di recente. Puoi ripristinarli in qualsiasi elenco.</p>
       ${(()=>{
@@ -805,7 +824,9 @@ function renderImpostazioni(){
         </div>`;
       })()}
     </div>
-    <div class="panel" style="margin-top:16px;">
+    ` : ''}
+    ${activeSection==='export' ? `
+    <div class="panel">
       <h2>Esportazione dati</h2>
       <p class="desc">Scarica l'elenco completo di ciascuna scheda in formato CSV.</p>
       <div style="display:flex; flex-wrap:wrap; gap:10px;">
@@ -814,6 +835,7 @@ function renderImpostazioni(){
         <button type="button" class="btn-secondary" data-export="disattivate"><i class="fa-solid fa-file-csv"></i> Disattivate</button>
       </div>
     </div>
+    ` : ''}
   `;
   el.querySelectorAll('[data-export]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -824,7 +846,13 @@ function renderImpostazioni(){
   el.querySelectorAll('.btn-restore-client').forEach(btn=>{
     btn.addEventListener('click', ()=>restoreClient(btn.dataset.dataset, btn.dataset.id));
   });
-  el.querySelectorAll('.opt-tab').forEach(btn=>{
+  el.querySelectorAll('[data-settingstab]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      impostazioniActiveSection = btn.dataset.settingstab;
+      renderImpostazioni();
+    });
+  });
+  el.querySelectorAll('[data-opttab]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       optListActiveTab = btn.dataset.opttab;
       renderImpostazioni();
