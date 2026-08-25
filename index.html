@@ -504,8 +504,8 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
-const CONTATTI_COLLECTION = 'contatti_gnocca';
-const contattiState = {};
+const CONTATTI_COLLECTIONS = {gnocca:'contatti_gnocca', no_tutor:'contatti_no_tutor'};
+const contattiState = {gnocca:{}, no_tutor:{}};
 const contattiListeners = [];
 
 function slug(s){
@@ -534,15 +534,17 @@ function startFirestoreListeners(){
   if(firestoreListenersStarted) return;
   firestoreListenersStarted = true;
 
-  onSnapshot(collection(db, CONTATTI_COLLECTION), snap => {
-    firestoreError = false; updateConnStatus();
-    snap.docChanges().forEach(change => {
-      const id = change.doc.id;
-      const docData = change.doc.exists() ? change.doc.data() : {};
-      contattiState[id] = docData;
-      contattiListeners.forEach(fn => fn(id, docData));
-    });
-  }, ()=>{ firestoreError = true; updateConnStatus(); });
+  Object.keys(CONTATTI_COLLECTIONS).forEach(dataset=>{
+    onSnapshot(collection(db, CONTATTI_COLLECTIONS[dataset]), snap => {
+      firestoreError = false; updateConnStatus();
+      snap.docChanges().forEach(change => {
+        const id = change.doc.id;
+        const docData = change.doc.exists() ? change.doc.data() : {};
+        contattiState[dataset][id] = docData;
+        contattiListeners.forEach(fn => fn(dataset, id, docData));
+      });
+    }, ()=>{ firestoreError = true; updateConnStatus(); });
+  });
 
   Object.keys(CLIENTI_COLLECTIONS).forEach(key=>{
     onSnapshot(collection(db, CLIENTI_COLLECTIONS[key]), snap=>{
@@ -675,8 +677,8 @@ function rerenderDataset(key){
   }
   if(key==='gnocca'){
     renderRiepilogoGlobale();
-    if(typeof sectionInitialized!=='undefined' && sectionInitialized.scadenze) renderScadenze();
   }
+  if((key==='gnocca' || key==='no_tutor') && typeof sectionInitialized!=='undefined' && sectionInitialized.scadenze) renderScadenze();
   if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni();
 }
 
@@ -1544,32 +1546,46 @@ function contattiGgInfo(fineDate, today){
   return {cls, label};
 }
 
+const SCADENZE_DATASETS = [{key:'gnocca', label:'Gnocca'}, {key:'no_tutor', label:'No Tutor'}];
 function renderScadenze(){
   document.getElementById('scadenze-content').innerHTML = `
-    <div class="panel">
-      <h2>Gestione contatti - rinnovi</h2>
-      <p class="desc">Ordinati per data di fine percorso. Stato e note sono condivisi in tempo reale con il team.</p>
-      <span class="sync-tag"><span class="sync-dot"></span>Sincronizzato in tempo reale</span>
-      <div class="filters">
-        <input type="text" id="gc-search" placeholder="Cerca cliente...">
-        <select id="gc-filter-stato-contatto">
-          <option value="">Tutti gli stati contatto</option>
-          <option value="Da contattare">Da contattare</option>
-          <option value="Contattato">Contattato</option>
-          <option value="Rinnovato">Rinnovato</option>
-          <option value="Non rinnova">Non rinnova</option>
-        </select>
-      </div>
-      <div class="contatti-list" id="gc-list"></div>
+    <div class="pill-tabs">
+      ${SCADENZE_DATASETS.map((d,i)=>`<button class="pill-btn${i===0?' active':''}" data-dataset="${d.key}">${d.label} (${RAW[d.key].length})</button>`).join('')}
     </div>
+    ${SCADENZE_DATASETS.map((d,i)=>`
+      <div id="scadenze-${d.key}" class="dataset-panel${i===0?' active':''}">
+        <div class="panel">
+          <h2>Gestione contatti - rinnovi</h2>
+          <p class="desc">Ordinati per data di fine percorso. Stato e note sono condivisi in tempo reale con il team.</p>
+          <span class="sync-tag"><span class="sync-dot"></span>Sincronizzato in tempo reale</span>
+          <div class="filters">
+            <input type="text" id="gc-search-${d.key}" placeholder="Cerca cliente...">
+            <select id="gc-filter-stato-contatto-${d.key}">
+              <option value="">Tutti gli stati contatto</option>
+              <option value="Da contattare">Da contattare</option>
+              <option value="Contattato">Contattato</option>
+              <option value="Rinnovato">Rinnovato</option>
+              <option value="Non rinnova">Non rinnova</option>
+            </select>
+          </div>
+          <div class="contatti-list" id="gc-list-${d.key}"></div>
+        </div>
+      </div>
+    `).join('')}
   `;
-  renderContattiList(RAW.gnocca);
+  SCADENZE_DATASETS.forEach(d=>renderContattiList(RAW[d.key], d.key));
+  document.querySelectorAll('#scadenze-content .pill-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('#scadenze-content .pill-btn').forEach(x=>x.classList.toggle('active', x===b));
+      document.querySelectorAll('#scadenze-content .dataset-panel').forEach(p=>p.classList.toggle('active', p.id==='scadenze-'+b.dataset.dataset));
+    });
+  });
 }
 
-function renderContattiList(data){
+function renderContattiList(data, dataset){
   const rows = data.filter(d=>parseDate(d.fine)).sort((a,b)=>parseDate(a.fine)-parseDate(b.fine));
   const today = new Date(); today.setHours(0,0,0,0);
-  const container = document.getElementById('gc-list');
+  const container = document.getElementById('gc-list-'+dataset);
   const statoOpts = ['Da contattare','Contattato','Rinnovato','Non rinnova'];
 
   function draw(list){
@@ -1577,7 +1593,7 @@ function renderContattiList(data){
       const id = contattiId(d);
       const fineDate = parseDate(d.fine);
       const {cls, label} = contattiGgInfo(fineDate, today);
-      const state = contattiState[id] || {};
+      const state = contattiState[dataset][id] || {};
       const statoContatto = state.stato_contatto || 'Da contattare';
       const nota = escAttr(state.nota || '');
       const optionsHtml = statoOpts.map(o=>`<option value="${o}" ${o===statoContatto?'selected':''}>${o}</option>`).join('');
@@ -1600,7 +1616,7 @@ function renderContattiList(data){
     container.querySelectorAll('.cr-select').forEach(sel=>{
       sel.addEventListener('change', ()=>{
         sel.className = `cr-select ${contattoSelectClass(sel.value)}`;
-        setDoc(doc(db, CONTATTI_COLLECTION, sel.dataset.id), {stato_contatto: sel.value}, {merge:true});
+        setDoc(doc(db, CONTATTI_COLLECTIONS[dataset], sel.dataset.id), {stato_contatto: sel.value}, {merge:true});
       });
     });
     const noteTimers = {};
@@ -1609,20 +1625,20 @@ function renderContattiList(data){
         const id2 = inp.dataset.id;
         clearTimeout(noteTimers[id2]);
         noteTimers[id2] = setTimeout(()=>{
-          setDoc(doc(db, CONTATTI_COLLECTION, id2), {nota: inp.value}, {merge:true});
+          setDoc(doc(db, CONTATTI_COLLECTIONS[dataset], id2), {nota: inp.value}, {merge:true});
         }, 600);
       });
     });
   }
 
   function applyFilters(){
-    const search = document.getElementById('gc-search').value.toLowerCase();
-    const fStato = document.getElementById('gc-filter-stato-contatto').value;
+    const search = document.getElementById('gc-search-'+dataset).value.toLowerCase();
+    const fStato = document.getElementById('gc-filter-stato-contatto-'+dataset).value;
     const filtered = rows.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
       if(fStato){
         const id = contattiId(d);
-        const cur = (contattiState[id]||{}).stato_contatto || 'Da contattare';
+        const cur = (contattiState[dataset][id]||{}).stato_contatto || 'Da contattare';
         if(cur !== fStato) return false;
       }
       return true;
@@ -1630,10 +1646,11 @@ function renderContattiList(data){
     draw(filtered);
   }
 
-  document.getElementById('gc-search').addEventListener('input', applyFilters);
-  document.getElementById('gc-filter-stato-contatto').addEventListener('change', applyFilters);
+  document.getElementById('gc-search-'+dataset).addEventListener('input', applyFilters);
+  document.getElementById('gc-filter-stato-contatto-'+dataset).addEventListener('change', applyFilters);
 
-  contattiListeners.push((id, docData)=>{
+  contattiListeners.push((ds, id, docData)=>{
+    if(ds!==dataset) return;
     const row = container.querySelector(`.contatto-row[data-id="${CSS.escape(id)}"]`);
     if(!row) return;
     const sel = row.querySelector('.cr-select');
