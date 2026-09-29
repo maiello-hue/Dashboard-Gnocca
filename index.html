@@ -2379,13 +2379,13 @@ function renderRiepilogoGlobale(){
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
   const nonRinnovoMese = clientsByStatoInMonth('NON RINNOVO', monthKey).length;
 
-  const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'linear-gradient(155deg,#ffffff,#fbe0ea)', labelColor:'#c22762', valueColor:'#e0245e', iconBg:'#fbdce7'};
+  const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'#d81b60', labelColor:'#ffffff', valueColor:'#ffffff', iconBg:'rgba(255,255,255,0.25)', iconColor:'#ffffff'};
   const secCards = [
-    {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:'linear-gradient(155deg,#f5faee,#e8f2d9)', color:'#27500a', iconBg:'#d7ebc0'},
-    {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:'linear-gradient(155deg,#f1f8fe,#e0eefa)', color:'#0c447c', iconBg:'#c9e2f7'},
-    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:'linear-gradient(155deg,#fef4f4,#fbe6e6)', color:'#791f1f', iconBg:'#f6d3d3'},
-    {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:'linear-gradient(155deg,#fdf8f0,#f9ecd8)', color:'#633806', iconBg:'#f3ddb3'},
-    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:'linear-gradient(155deg,#f8f5fc,#ede4f7)', color:'#4a3aa7', iconBg:'#ddccf0'},
+    {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
+    {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
+    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
+    {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
+    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
   ];
   const heroHtml = `<div class="kpi kpi-clickable riepilogo-hero${heroCard.filter===openDetailFilter?' kpi-open':''}" data-filter="${heroCard.filter}" data-label="${escAttr(heroCard.label)}" style="background:${heroCard.grad};">
     <div class="kpi-icon-plain" style="color:${heroCard.valueColor};"><i class="fa-solid ${heroCard.icon}"></i></div>
