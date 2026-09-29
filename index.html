@@ -2399,8 +2399,8 @@ function renderRiepilogoGlobale(){
   const secCards = [
     {label:'Attive', value: inPercorso, icon:'fa-user-check', filter:'IN PERCORSO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:secGrad, color:'#18181a', border:secBorder},
-    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:secGrad, color:'#18181a', border:secBorder},
   ];
   const heroHtml = `<div class="kpi kpi-clickable riepilogo-hero${heroCard.filter===openDetailFilter?' kpi-open':''}" data-filter="${heroCard.filter}" data-label="${escAttr(heroCard.label)}" style="background:${heroCard.grad};">
