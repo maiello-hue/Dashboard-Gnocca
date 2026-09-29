@@ -41,6 +41,7 @@
   .subtitle{color:var(--text-secondary); font-size:14px; margin:0 0 20px;}
   .app-layout{display:flex; gap:24px; align-items:flex-start;}
   .sidebar{width:230px; flex-shrink:0; background:var(--surface); border:0.5px solid var(--border); border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
+  .sidebar.align-dash{margin-top:40px;}
   .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
   .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px; transition:background 0.15s ease, color 0.15s ease;}
   .side-btn i{width:18px; text-align:center; font-size:15px; color:var(--text-muted);}
@@ -120,7 +121,7 @@
   .riepilogo-kpi-wrap .kpi{border:none; padding:20px 22px;}
   .riepilogo-kpi-wrap .label{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em;}
   .riepilogo-kpi-wrap .value{font-size:34px; font-weight:700;}
-  .riepilogo-hero{flex:0 0 280px; display:flex; flex-direction:column; justify-content:center; gap:8px;}
+  .riepilogo-hero{flex:0 0 280px; display:flex; flex-direction:column; justify-content:flex-start; gap:10px;}
   .riepilogo-hero .value{font-size:56px;}
   .riepilogo-sec-grid{flex:1 1 520px; min-width:280px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
   .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
@@ -389,7 +390,7 @@
   </div>
 
   <div class="app-layout">
-    <div class="sidebar">
+    <div class="sidebar align-dash" id="main-sidebar">
       <div class="side-label">Navigazione</div>
       <button class="side-btn active" data-nav="dashboard"><i class="fa-solid fa-house"></i>Dashboard</button>
       <button class="side-btn" data-nav="clienti"><i class="fa-solid fa-users"></i>Clienti</button>
@@ -2453,6 +2454,8 @@ function navigateTo(section){
     b.classList.toggle('active', b.dataset.nav===section);
   });
   document.querySelectorAll('.app-section').forEach(s=>s.classList.toggle('active', s.id==='section-'+section));
+  const sidebarEl = document.getElementById('main-sidebar');
+  if(sidebarEl) sidebarEl.classList.toggle('align-dash', section==='dashboard');
   if(section==='clienti' && !sectionInitialized.clienti){
     showDataset('clienti', 'gnocca'); sectionInitialized.clienti=true;
   } else if(section==='no_tutor' && !sectionInitialized.no_tutor){
