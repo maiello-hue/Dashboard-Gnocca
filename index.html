@@ -2685,11 +2685,16 @@ function renderLinkElenco(){
       const tel = telefonoDi(x);
       return '<div style="display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:0.5px solid var(--border)">'
         + '<div style="flex:1; min-width:0; font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">'
-        +   linkEsc(x.cliente) + (tel ? '' : ' <span style="font-weight:400; color:var(--text-secondary)">· manca il numero</span>')
+        +   linkEsc(x.cliente)
+        +   (x.bloccata ? ' <span style="font-weight:700; font-size:11px; color:#b3312f; background:#fdeaea; border-radius:999px; padding:2px 8px">PRENOTAZIONI BLOCCATE</span>' : '')
+        +   (tel ? '' : ' <span style="font-weight:400; color:var(--text-secondary)">· manca il numero</span>')
         + '</div>'
         + (tel ? '<button type="button" class="btn-icon link-wa" data-id="' + linkEsc(x.cliente_id) + '" style="background:#189a56; border-color:#189a56; color:#fff"><i class="fa-brands fa-whatsapp"></i>WhatsApp</button>' : '')
         + '<button type="button" class="btn-icon link-copia" data-id="' + linkEsc(x.cliente_id) + '">Copia</button>'
         + '<button type="button" class="btn-icon link-rigenera" data-id="' + linkEsc(x.cliente_id) + '" title="Crea un link nuovo: quello vecchio smette di funzionare">Rigenera</button>'
+        + '<button type="button" class="btn-icon link-blocco" data-id="' + linkEsc(x.cliente_id) + '"'
+        +   (x.bloccata ? ' style="background:#b3312f; border-color:#b3312f; color:#fff" title="Sblocca le prenotazioni"' : ' title="Blocca le prenotazioni di questa cliente"')
+        +   '>' + (x.bloccata ? 'Sblocca' : 'Blocca') + '</button>'
         + '</div>';
     }).join('');
   }
@@ -2716,6 +2721,7 @@ function renderLinkElenco(){
   el.querySelectorAll('.link-wa').forEach(b => b.addEventListener('click', () => linkWhatsApp(b.dataset.id)));
   el.querySelectorAll('.link-copia').forEach(b => b.addEventListener('click', () => linkCopia(b.dataset.id, b)));
   el.querySelectorAll('.link-rigenera').forEach(b => b.addEventListener('click', () => linkRigenera(b.dataset.id, b)));
+  el.querySelectorAll('.link-blocco').forEach(b => b.addEventListener('click', () => linkBlocco(b.dataset.id, b)));
 }
 
 function rigaDi(id){ return (linkRighe||[]).find(x => String(x.cliente_id) === String(id)); }
@@ -2784,6 +2790,38 @@ async function linkCopiaTutti(){
   const testo = righe.map(x => x.cliente + ' — ' + (telefonoDi(x) || 'numero mancante') + '\n' + AREA_CLIENTI + x.token).join('\n\n');
   const ok = await linkCopiaTesto(testo);
   showToast(ok ? righe.length + ' link copiati' : 'Non sono riuscito a copiare', ok ? 'success' : 'error');
+}
+
+/* Blocco delle prenotazioni di UNA cliente (29/9/2026). Serve quando una
+   cliente non deve piu' prenotare per un po' — pagamento fermo, percorso in
+   sospeso — senza toccare il suo accesso: entra, vede gli orari, ma non
+   prenota. Le prenotazioni gia' fissate restano valide: si blocca il futuro,
+   non si disfa il passato.
+   Il divieto vero e' nel database (prenota_allenamento): qui si comanda e
+   basta. */
+async function linkBlocco(id, btn){
+  const r = rigaDi(id);
+  if(!r) return;
+  const sb = await sbGnocca();
+  if(r.bloccata){
+    if(!confirm('Sblocco le prenotazioni di ' + r.cliente + '?')) return;
+    btn.disabled = true;
+    const res = await sb.rpc('sblocca_prenotazioni', { p_cliente: id });
+    btn.disabled = false;
+    if(res.error){ showToast('Non riuscito: ' + (res.error.message||''), 'error'); return; }
+    r.bloccata = false; r.motivo_blocco = null;
+    showToast(r.cliente + ' può prenotare di nuovo', 'success');
+  } else {
+    const motivo = prompt('Perché blocchi ' + r.cliente + '? (lo vedi solo tu, la cliente legge un avviso neutro)');
+    if(motivo === null) return;
+    btn.disabled = true;
+    const res = await sb.rpc('blocca_prenotazioni', { p_cliente: id, p_motivo: motivo });
+    btn.disabled = false;
+    if(res.error){ showToast('Non riuscito: ' + (res.error.message||''), 'error'); return; }
+    r.bloccata = true; r.motivo_blocco = motivo;
+    showToast('Prenotazioni bloccate per ' + r.cliente, 'success');
+  }
+  renderLinkElenco();
 }
 
 async function linkRigenera(id, btn){
