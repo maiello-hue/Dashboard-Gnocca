@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root{
-    --bg:#f5f5f3; --surface:#ffffff; --surface-2:#fafaf9;
+    --bg:#ffffff; --surface:#ffffff; --surface-2:#fafaf9;
     --text:#18181a; --text-secondary:#63625c; --text-muted:#8b8a83;
     --border:#e4e3dd; --border-strong:#cfcec6;
     --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --yellow:#eda100;
@@ -40,22 +40,22 @@
   .brand-logo{width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;}
   .subtitle{color:var(--text-secondary); font-size:14px; margin:0 0 20px;}
   .app-layout{display:flex; gap:24px; align-items:flex-start;}
-  .sidebar{width:230px; flex-shrink:0; background:var(--surface); border:0.5px solid var(--border); border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
+  .sidebar{width:230px; flex-shrink:0; background:linear-gradient(165deg,#26262b,#0c0c0e); border:none; border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
   .sidebar.align-dash{margin-top:40px;}
-  .side-label{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
-  .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:var(--text-secondary); cursor:pointer; margin-bottom:2px; transition:background 0.15s ease, color 0.15s ease;}
-  .side-btn i{width:18px; text-align:center; font-size:15px; color:var(--text-muted);}
-  .side-count{margin-left:auto; font-size:11px; color:var(--text-muted);}
-  .side-btn:hover{background:var(--surface-2); color:var(--text);}
-  .side-btn:hover i{color:var(--text);}
-  .side-btn.active{background:var(--surface-2); color:var(--text); font-weight:500;}
-  .side-btn.active i{color:var(--accent);}
-  .side-btn.active:hover{background:var(--surface-2);}
-  .side-btn.disabled{color:var(--text-muted); cursor:default; opacity:0.6;}
-  .side-btn.disabled i{color:var(--text-muted); opacity:0.6;}
-  .side-btn.disabled:hover{background:none; color:var(--text-muted);}
-  .side-btn.disabled:hover i{color:var(--text-muted);}
-  .side-divider{height:0.5px; background:var(--border); margin:10px 6px;}
+  .side-label{font-size:11px; font-weight:500; color:#8b8a95; text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
+  .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:#c9c8c2; cursor:pointer; margin-bottom:2px; transition:background 0.15s ease, color 0.15s ease;}
+  .side-btn i{width:18px; text-align:center; font-size:15px; color:#9c9b93;}
+  .side-count{margin-left:auto; font-size:11px; color:#8b8a95;}
+  .side-btn:hover{background:rgba(255,255,255,0.08); color:#ffffff;}
+  .side-btn:hover i{color:#ffffff;}
+  .side-btn.active{background:rgba(224,36,94,0.18); color:#ff8ba3; font-weight:500;}
+  .side-btn.active i{color:#ff5c7a;}
+  .side-btn.active:hover{background:rgba(224,36,94,0.22);}
+  .side-btn.disabled{color:#6b6a70; cursor:default; opacity:0.6;}
+  .side-btn.disabled i{color:#6b6a70; opacity:0.6;}
+  .side-btn.disabled:hover{background:none; color:#6b6a70;}
+  .side-btn.disabled:hover i{color:#6b6a70;}
+  .side-divider{height:0.5px; background:rgba(255,255,255,0.1); margin:10px 6px;}
   .main-content{flex:1; min-width:0;}
   .app-section{display:none;}
   .app-section.active{display:block; animation:sectionFade 0.22s ease;}
@@ -2379,13 +2379,15 @@ function renderRiepilogoGlobale(){
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
   const nonRinnovoMese = clientsByStatoInMonth('NON RINNOVO', monthKey).length;
 
-  const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'#d81b60', labelColor:'#ffffff', valueColor:'#ffffff', iconBg:'rgba(255,255,255,0.25)', iconColor:'#ffffff'};
+  const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'linear-gradient(150deg,#ef2f6e,#a3134f)', labelColor:'#fbdce7', valueColor:'#ffffff', border:'none'};
+  const secGrad = 'linear-gradient(150deg,#ffffff,#e6e4db)';
+  const secBorder = '0.5px solid #e9e7de';
   const secCards = [
-    {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
-    {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
-    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
-    {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
-    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:'#efece4', color:'#18181a', iconBg:'#18181a', iconColor:'#ffffff'},
+    {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:secGrad, color:'#18181a', border:secBorder},
   ];
   const heroHtml = `<div class="kpi kpi-clickable riepilogo-hero${heroCard.filter===openDetailFilter?' kpi-open':''}" data-filter="${heroCard.filter}" data-label="${escAttr(heroCard.label)}" style="background:${heroCard.grad};">
     <div class="kpi-icon-plain" style="color:${heroCard.valueColor};"><i class="fa-solid ${heroCard.icon}"></i></div>
@@ -2394,7 +2396,7 @@ function renderRiepilogoGlobale(){
   </div>`;
   const secHtml = secCards.map(k=>{
     const label = k.sub ? `${k.label} (${k.sub})` : k.label;
-    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.grad};"><div class="kpi-icon-plain" style="color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="label" style="color:${k.color}; opacity:0.85;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`;
+    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.grad}; border:${k.border};"><div class="kpi-icon-plain" style="color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="label" style="color:${k.color}; opacity:0.85;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`;
   }).join('');
   document.getElementById('riepilogo-globale').innerHTML = heroHtml + `<div class="riepilogo-sec-grid">${secHtml}</div>`;
   renderRiepilogoDetail();
