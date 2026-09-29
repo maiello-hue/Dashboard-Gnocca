@@ -2401,6 +2401,8 @@ const AREA_CLIENTI = 'https://area-clienti.personalg.it/?c=';
 let sbClientGnocca = null;
 let linkRighe = null;      // null = mai caricate
 let linkFiltro = '';
+let linkAccount = '';          // email dell'account Supabase collegato
+let linkAmministratore = true; // false = collegato, ma senza i permessi
 
 async function sbGnocca(){
   if(sbClientGnocca) return sbClientGnocca;
@@ -2469,6 +2471,20 @@ async function caricaLinkRighe(){
     return;
   }
   linkRighe = r.data || [];
+  /* Elenco vuoto: il database non dice mai PERCHE' non vedi niente (se lo
+     dicesse, chi prova a entrare imparerebbe qualcosa). Le due ragioni
+     possibili sono "non sei amministratore" e "non ci sono clienti": qui
+     chiediamo quale delle due, cosi' la pagina lo puo' spiegare. */
+  if(!linkRighe.length){
+    const chi = await sb.auth.getUser();
+    const amm = await sb.rpc('sono_admin');
+    linkAccount = chi.data?.user?.email || '';
+    linkAmministratore = !(amm.error) && amm.data === true;
+  } else {
+    const chi = await sb.auth.getUser();
+    linkAccount = chi.data?.user?.email || '';
+    linkAmministratore = true;
+  }
   renderLinkElenco();
 }
 
@@ -2484,12 +2500,17 @@ function renderLinkElenco(){
     +     tutte.length + (tutte.length===1 ? ' cliente Gnocca in percorso' : ' clienti Gnocca in percorso')
     +     ' · il link non scade, si manda una volta sola</div></div>'
     +   '<div style="display:flex; gap:8px; flex-wrap:wrap">'
+    +     '<button type="button" class="btn-icon" id="link-esci" title="' + linkEsc(linkAccount ? 'Collegato come ' + linkAccount : '') + '"><i class="fa-solid fa-right-from-bracket"></i>Cambia account</button>'
     +     '<button type="button" class="btn-icon" id="link-aggiorna"><i class="fa-solid fa-rotate"></i>Aggiorna</button>'
     +     '<button type="button" class="btn-primary" id="link-copia-tutti">Copia tutti</button>'
     +   '</div>'
     + '</div>'
     + '<input type="search" id="link-cerca" placeholder="Cerca una cliente" value="' + linkEsc(linkFiltro) + '" style="width:100%; margin-bottom:12px">';
-  if(!righe.length){
+  if(!righe.length && !linkAmministratore){
+    html += '<div style="font-size:13px; line-height:1.55">'
+      + 'Sei collegato come <b>' + linkEsc(linkAccount) + '</b>, ma questo account non è amministratore, quindi il database non gli mostra nessuna cliente.<br>'
+      + 'Collegati con lo stesso account che usi nella dashboard principale.</div>';
+  } else if(!righe.length){
     html += '<div style="font-size:13px; color:var(--text-secondary)">' + (tutte.length ? 'Nessuna cliente con questo nome.' : 'Nessuna cliente Gnocca in percorso.') + '</div>';
   } else {
     html += righe.map(x => {
@@ -2508,6 +2529,12 @@ function renderLinkElenco(){
   el.innerHTML = html;
 
   document.getElementById('link-aggiorna').addEventListener('click', () => { linkRighe = null; caricaLinkRighe(); });
+  document.getElementById('link-esci').addEventListener('click', async () => {
+    const sb = await sbGnocca();
+    await sb.auth.signOut();
+    linkRighe = null; linkAccount = ''; linkAmministratore = true;
+    renderLinkLogin();
+  });
   document.getElementById('link-copia-tutti').addEventListener('click', linkCopiaTutti);
   const cerca = document.getElementById('link-cerca');
   cerca.addEventListener('input', () => {
