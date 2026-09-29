@@ -119,9 +119,9 @@
   .kpi-icon-plain{position:absolute; top:16px; right:16px; font-size:18px;}
   .riepilogo-kpi-wrap{display:flex; gap:14px; margin-bottom:20px; align-items:stretch; flex-wrap:wrap;}
   .riepilogo-kpi-wrap .kpi{border:none; padding:20px 22px;}
-  .riepilogo-kpi-wrap .label{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em;}
+  .riepilogo-kpi-wrap .label{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:18px;}
   .riepilogo-kpi-wrap .value{font-size:34px; font-weight:700;}
-  .riepilogo-hero{flex:0 0 280px; display:flex; flex-direction:column; justify-content:flex-start; gap:10px;}
+  .riepilogo-hero{flex:0 0 280px; display:flex; flex-direction:column; justify-content:flex-start; gap:22px;}
   .riepilogo-hero .value{font-size:56px;}
   .riepilogo-sec-grid{flex:1 1 520px; min-width:280px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
   .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
@@ -2226,7 +2226,7 @@ function clientsByStatoInMonth(stato, monthKey){
     return monthKeyFromDate(dt)===monthKey;
   });
 }
-const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'In percorso', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandonate', 'SPARITA':'Sparite', 'NON RINNOVO':'Non rinnovo'};
+const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'Attive', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandono', 'SPARITA':'Sparite', 'NON RINNOVO':'Non rinnovo'};
 const KPI_MONTHLY_FILTERS = ['ABBANDONO', 'NON RINNOVO'];
 function riepilogoDetailLabel(filter){
   const base = KPI_LABELS[filter] ?? '';
@@ -2381,9 +2381,9 @@ function renderRiepilogoGlobale(){
 
   const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'linear-gradient(155deg,#ffffff,#fbe0ea)', labelColor:'#c22762', valueColor:'#e0245e', iconBg:'#fbdce7'};
   const secCards = [
-    {label:'In percorso', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:'linear-gradient(155deg,#f5faee,#e8f2d9)', color:'#27500a', iconBg:'#d7ebc0'},
+    {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:'linear-gradient(155deg,#f5faee,#e8f2d9)', color:'#27500a', iconBg:'#d7ebc0'},
     {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:'linear-gradient(155deg,#f1f8fe,#e0eefa)', color:'#0c447c', iconBg:'#c9e2f7'},
-    {label:'Abbandonate', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:'linear-gradient(155deg,#fef4f4,#fbe6e6)', color:'#791f1f', iconBg:'#f6d3d3'},
+    {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:'linear-gradient(155deg,#fef4f4,#fbe6e6)', color:'#791f1f', iconBg:'#f6d3d3'},
     {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:'linear-gradient(155deg,#fdf8f0,#f9ecd8)', color:'#633806', iconBg:'#f3ddb3'},
     {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:'linear-gradient(155deg,#f8f5fc,#ede4f7)', color:'#4a3aa7', iconBg:'#ddccf0'},
   ];
