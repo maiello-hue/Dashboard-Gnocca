@@ -201,6 +201,7 @@
   .b-mainiziato{background:#f1efe8; color:#444441;}
   .b-abbandono{background:#fcebeb; color:#791f1f;}
   .b-non-rinnovo{background:#efe9fb; color:#4a3aa7;}
+  .stato-select{border:none; cursor:pointer; appearance:none; -webkit-appearance:none; -moz-appearance:none; font-family:inherit;}
   .b-vuoto{background:#f1efe8; color:#888780;}
   .b-perc-12{background:#fbe4ec; color:#9c1f56;}
   .b-perc-6{background:#c2185b; color:#ffffff;}
@@ -723,6 +724,7 @@ function rerenderDataset(key){
   if(typeof sectionInitialized!=='undefined' && sectionInitialized.impostazioni) renderImpostazioni();
 }
 
+const GNOCCA_STATO_OPTIONS = ['IN PERCORSO','SOSPESA','SPARITA','MAI INIZIATO','ABBANDONO','NON RINNOVO'];
 const PERCORSO_OPTIONS = ['12 MESI','6 MESI','GNOCCA 4 LIFE','PROMO ESTATE'];
 const VENDITORE_OPTIONS = ['Personal_G','Salvatore','Peppe'];
 const NUTRI_OPTIONS = ['Non assegnato','Alessia','Matilde','Nicole','Sofia','Vanessa'];
@@ -1510,6 +1512,7 @@ function renderGnoccaClienti(){
   document.getElementById('g-add-btn').addEventListener('click', ()=>openClientModal('gnocca', null));
 
   document.getElementById('g-tbody').addEventListener('click', (e)=>{
+    if(e.target.closest('.stato-select')) return;
     const editBtn = e.target.closest('.btn-edit-client');
     if(editBtn){ openClientModal(editBtn.dataset.dataset, editBtn.dataset.id); return; }
     const delBtn = e.target.closest('.btn-delete-client');
@@ -1520,6 +1523,28 @@ function renderGnoccaClienti(){
     if(detail && detail.classList.contains('client-detail')){
       detail.classList.toggle('open');
     }
+  });
+
+  document.getElementById('g-tbody').addEventListener('change', (e)=>{
+    const sel = e.target.closest('.stato-select');
+    if(!sel) return;
+    const newStato = sel.value;
+    const id = sel.dataset.id;
+    const record = RAW.gnocca.find(r=>clientDocId(r)===id);
+    if(!record){ return; }
+    const oldStato = record.stato;
+    sel.className = `badge stato-select ${statoBadgeClass(newStato)}`;
+    if(newStato==='ABBANDONO' || newStato==='NON RINNOVO'){
+      moveGnoccaToDisattivate({...record, stato:newStato}, id, newStato)
+        .then(()=>showToast('Cliente spostata in Disattivate.', 'success'))
+        .catch(err=>{ sel.value = oldStato; sel.className = `badge stato-select ${statoBadgeClass(oldStato)}`; showToast('Errore: ' + err.message, 'error'); });
+      return;
+    }
+    const payload = {...record, stato:newStato};
+    delete payload._id;
+    setDoc(doc(db, CLIENTI_COLLECTIONS.gnocca, id), payload)
+      .then(()=>showToast('Stato aggiornato.', 'success'))
+      .catch(err=>{ sel.value = oldStato; sel.className = `badge stato-select ${statoBadgeClass(oldStato)}`; showToast('Errore: ' + err.message, 'error'); });
   });
 
   let sort = {key:'inizio', dir:1};
@@ -1547,7 +1572,7 @@ function renderGnoccaClienti(){
     document.getElementById('g-tbody').innerHTML = rows.map(d=>`
       <tr class="client-row">
         <td data-label="Cliente">${nameCellHtml(d.cliente)}</td>
-        <td data-label="Stato"><span class="badge ${statoBadgeClass(d.stato)}">${escHtml(d.stato)}</span></td>
+        <td data-label="Stato"><select class="badge stato-select ${statoBadgeClass(d.stato)}" data-id="${clientDocId(d)}">${GNOCCA_STATO_OPTIONS.map(o=>`<option value="${o}" ${o===d.stato?'selected':''}>${o}</option>`).join('')}</select></td>
         <td data-label="Percorso"><span class="badge ${percorsoBadgeClass(d.percorso)}">${escHtml(d.percorso)}</span></td>
         <td data-label="Inizio">${escHtml(d.inizio)}</td>
         <td data-label="Attivita"><span class="badge ${situazioneBadgeClass(d.situazione)}">${escHtml(dispVal(d.situazione))}</span></td>
