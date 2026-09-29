@@ -2380,8 +2380,8 @@ function renderRiepilogoGlobale(){
   const nonRinnovoMese = clientsByStatoInMonth('NON RINNOVO', monthKey).length;
 
   const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'linear-gradient(150deg,#ef2f6e,#a3134f)', labelColor:'#fbdce7', valueColor:'#ffffff', border:'none'};
-  const secGrad = 'linear-gradient(150deg,#ffffff,#f1efe6)';
-  const secBorder = '0.5px solid #eeece3';
+  const secGrad = 'linear-gradient(150deg,#ffffff,#dcdcdc)';
+  const secBorder = '0.5px solid #e0e0e0';
   const secCards = [
     {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:secGrad, color:'#18181a', border:secBorder},
