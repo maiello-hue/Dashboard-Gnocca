@@ -2514,7 +2514,7 @@ function renderLinkElenco(){
     html += '<div style="font-size:13px; color:var(--text-secondary)">' + (tutte.length ? 'Nessuna cliente con questo nome.' : 'Nessuna cliente Gnocca in percorso.') + '</div>';
   } else {
     html += righe.map(x => {
-      const tel = (x.telefono||'').trim();
+      const tel = telefonoDi(x);
       return '<div style="display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:0.5px solid var(--border)">'
         + '<div style="flex:1; min-width:0; font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">'
         +   linkEsc(x.cliente) + (tel ? '' : ' <span style="font-weight:400; color:var(--text-secondary)">· manca il numero</span>')
@@ -2552,6 +2552,30 @@ function renderLinkElenco(){
 
 function rigaDi(id){ return (linkRighe||[]).find(x => String(x.cliente_id) === String(id)); }
 
+/* Il numero: prima quello che arriva da Supabase, poi — se manca — quello
+   delle schede di QUESTA dashboard (RAW), abbinato per nome. Le due anagrafiche
+   sono separate e spesso il telefono ce l'ha solo una delle due: senza questo
+   ripiego meta' delle righe restavano senza pulsante WhatsApp. */
+function normNome(v){
+  return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').replace(/\s+/g,' ').trim();
+}
+let indiceTelefoni = null;
+function telefonoDaSchede(nome){
+  if(indiceTelefoni === null){
+    indiceTelefoni = {};
+    ['gnocca','no_tutor','disattivate'].forEach(k => {
+      (RAW[k]||[]).forEach(d => {
+        const key = normNome(d.cliente);
+        if(key && d.telefono && !indiceTelefoni[key]) indiceTelefoni[key] = String(d.telefono);
+      });
+    });
+  }
+  return indiceTelefoni[normNome(nome)] || '';
+}
+function telefonoDi(r){
+  return (String(r.telefono||'').trim()) || telefonoDaSchede(r.cliente);
+}
+
 async function linkCopiaTesto(testo){
   try { await navigator.clipboard.writeText(testo); return true; }
   catch(e){
@@ -2569,12 +2593,14 @@ async function linkCopiaTesto(testo){
 function linkWhatsApp(id){
   const r = rigaDi(id);
   if(!r) return;
+  const numero = telefonoDi(r);
+  if(!numero){ showToast('Questa cliente non ha un numero in anagrafica', 'error'); return; }
   const nome = String(r.cliente||'').trim().split(/\s+/)[0] || '';
   const testo = 'Ciao ' + nome + '! Questo è il tuo accesso all\'Area clienti Personal_G: ' + AREA_CLIENTI + r.token
     + ' — è il tuo link personale, salvalo nei preferiti, così rientri quando vuoi';
   /* Stessa strada degli altri messaggi di questa dashboard: si apre WhatsApp
      con il testo gia' pronto, l'invio lo fa la persona. */
-  window.open('https://wa.me/' + waDigits(r.telefono) + '?text=' + encodeURIComponent(testo), '_blank');
+  window.open('https://wa.me/' + waDigits(numero) + '?text=' + encodeURIComponent(testo), '_blank');
 }
 
 async function linkCopia(id, btn){
@@ -2587,7 +2613,7 @@ async function linkCopia(id, btn){
 async function linkCopiaTutti(){
   const righe = linkRighe || [];
   if(!righe.length){ showToast('Nessuna cliente da copiare', 'error'); return; }
-  const testo = righe.map(x => x.cliente + ' — ' + ((x.telefono||'').trim() || 'numero mancante') + '\n' + AREA_CLIENTI + x.token).join('\n\n');
+  const testo = righe.map(x => x.cliente + ' — ' + (telefonoDi(x) || 'numero mancante') + '\n' + AREA_CLIENTI + x.token).join('\n\n');
   const ok = await linkCopiaTesto(testo);
   showToast(ok ? righe.length + ' link copiati' : 'Non sono riuscito a copiare', ok ? 'success' : 'error');
 }
