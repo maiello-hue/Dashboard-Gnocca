@@ -74,7 +74,7 @@
     .kpi-grid{grid-template-columns:repeat(auto-fit, minmax(140px,1fr));}
     .riepilogo-kpi-wrap{flex-direction:column;}
     .riepilogo-hero{flex:1 1 auto; width:100%;}
-    .riepilogo-sec-grid{flex:1 1 auto; width:100%; min-width:0;}
+    .riepilogo-sec-grid{flex:1 1 auto; width:100%; min-width:0; grid-template-columns:repeat(2,1fr);}
     .riepilogo-detail-row{gap:6px;}
     .rd-nome{flex:0 0 auto; width:auto; max-width:100%; white-space:normal;}
     .rd-badge-stato, .rd-badge-percorso{flex:0 0 auto; width:auto;}
@@ -115,11 +115,14 @@
   .kpi .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
   .kpi-icon{position:absolute; top:14px; right:14px; font-size:14px; opacity:0.45;}
   .kpi-icon-circle{position:absolute; top:14px; right:14px; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;}
-  .riepilogo-kpi-wrap{display:flex; gap:12px; margin-bottom:20px; align-items:stretch; flex-wrap:wrap;}
-  .riepilogo-kpi-wrap .kpi{border:none;}
-  .riepilogo-hero{flex:0 0 220px; display:flex; flex-direction:column; justify-content:center; gap:6px;}
-  .riepilogo-hero .value{font-size:36px;}
-  .riepilogo-sec-grid{flex:1 1 480px; min-width:280px; display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px;}
+  .riepilogo-kpi-wrap{display:flex; gap:14px; margin-bottom:20px; align-items:stretch; flex-wrap:wrap;}
+  .riepilogo-kpi-wrap .kpi{border:none; padding:20px 22px;}
+  .riepilogo-kpi-wrap .label{font-size:14px;}
+  .riepilogo-kpi-wrap .value{font-size:28px;}
+  .riepilogo-kpi-wrap .kpi-icon-circle{width:32px; height:32px; font-size:13px;}
+  .riepilogo-hero{flex:0 0 280px; display:flex; flex-direction:column; justify-content:center; gap:8px;}
+  .riepilogo-hero .value{font-size:44px;}
+  .riepilogo-sec-grid{flex:1 1 520px; min-width:280px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
   .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
   .kpi-clickable:hover{filter:brightness(0.96); box-shadow:0 2px 8px rgba(0,0,0,0.06);}
   .kpi-clickable.kpi-open{outline:2px solid var(--text); outline-offset:-2px;}
@@ -409,16 +412,6 @@
           </div>
         </div>
         <div class="riepilogo-kpi-wrap" id="riepilogo-globale"></div>
-        <div class="panel scadenze-mini-panel">
-          <div class="riepilogo-detail-head scadenze-mini-toggle" id="scadenze-mini-toggle" role="button" tabindex="0" aria-expanded="false">
-            <h2><i class="fa-solid fa-clock"></i> Prossime scadenze (30gg) <span class="scadenze-mini-count" id="scadenze-mini-count"></span></h2>
-            <div class="scadenze-mini-actions">
-              <button type="button" class="btn-icon" id="scadenze-mini-vedi-tutte"><i class="fa-solid fa-arrow-right"></i>Vedi tutte</button>
-              <i class="fa-solid fa-chevron-down scadenze-mini-chevron" id="scadenze-mini-chevron"></i>
-            </div>
-          </div>
-          <div class="riepilogo-detail-list" id="scadenze-mini-list" style="display:none;"></div>
-        </div>
         <div id="riepilogo-detail" style="display:none;"></div>
       </div>
 
@@ -2417,14 +2410,6 @@ document.getElementById('riepilogo-globale').addEventListener('click', (e)=>{
   openDetailFilter = filter;
   renderRiepilogoDetail();
   document.querySelectorAll('.kpi-clickable').forEach(c=>c.classList.toggle('kpi-open', c.dataset.filter===filter));
-});
-document.getElementById('scadenze-mini-vedi-tutte').addEventListener('click', (e)=>{ e.stopPropagation(); navigateTo('scadenze'); });
-document.getElementById('scadenze-mini-toggle').addEventListener('click', (e)=>{
-  if(e.target.closest('#scadenze-mini-vedi-tutte')) return;
-  toggleScadenzeMini();
-});
-document.getElementById('scadenze-mini-toggle').addEventListener('keydown', (e)=>{
-  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleScadenzeMini(); }
 });
 document.getElementById('dash-month-prev').addEventListener('click', ()=>{
   dashboardMonthDate = new Date(dashboardMonthDate.getFullYear(), dashboardMonthDate.getMonth()-1, 1);
