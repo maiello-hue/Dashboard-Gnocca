@@ -115,13 +115,13 @@
   .kpi .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
   .kpi-icon{position:absolute; top:14px; right:14px; font-size:14px; opacity:0.45;}
   .kpi-icon-circle{position:absolute; top:14px; right:14px; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;}
+  .kpi-icon-plain{position:absolute; top:16px; right:16px; font-size:18px;}
   .riepilogo-kpi-wrap{display:flex; gap:14px; margin-bottom:20px; align-items:stretch; flex-wrap:wrap;}
   .riepilogo-kpi-wrap .kpi{border:none; padding:20px 22px;}
-  .riepilogo-kpi-wrap .label{font-size:14px;}
-  .riepilogo-kpi-wrap .value{font-size:28px;}
-  .riepilogo-kpi-wrap .kpi-icon-circle{width:32px; height:32px; font-size:13px;}
+  .riepilogo-kpi-wrap .label{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em;}
+  .riepilogo-kpi-wrap .value{font-size:34px; font-weight:700;}
   .riepilogo-hero{flex:0 0 280px; display:flex; flex-direction:column; justify-content:center; gap:8px;}
-  .riepilogo-hero .value{font-size:44px;}
+  .riepilogo-hero .value{font-size:56px;}
   .riepilogo-sec-grid{flex:1 1 520px; min-width:280px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
   .kpi-clickable{cursor:pointer; transition:filter 0.1s, box-shadow 0.1s;}
   .kpi-clickable:hover{filter:brightness(0.96); box-shadow:0 2px 8px rgba(0,0,0,0.06);}
@@ -2387,13 +2387,13 @@ function renderRiepilogoGlobale(){
     {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:'linear-gradient(155deg,#f8f5fc,#ede4f7)', color:'#4a3aa7', iconBg:'#ddccf0'},
   ];
   const heroHtml = `<div class="kpi kpi-clickable riepilogo-hero${heroCard.filter===openDetailFilter?' kpi-open':''}" data-filter="${heroCard.filter}" data-label="${escAttr(heroCard.label)}" style="background:${heroCard.grad};">
-    <div class="kpi-icon-circle" style="background:${heroCard.iconBg}; color:${heroCard.valueColor};"><i class="fa-solid ${heroCard.icon}"></i></div>
+    <div class="kpi-icon-plain" style="color:${heroCard.valueColor};"><i class="fa-solid ${heroCard.icon}"></i></div>
     <div class="label" style="color:${heroCard.labelColor};">${heroCard.label}</div>
     <div class="value" style="color:${heroCard.valueColor};">${heroCard.value}</div>
   </div>`;
   const secHtml = secCards.map(k=>{
     const label = k.sub ? `${k.label} (${k.sub})` : k.label;
-    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.grad};"><div class="kpi-icon-circle" style="background:${k.iconBg}; color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="label" style="color:${k.color}; opacity:0.85;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`;
+    return `<div class="kpi kpi-clickable${k.filter===openDetailFilter?' kpi-open':''}" data-filter="${k.filter}" data-label="${escAttr(label)}" style="background:${k.grad};"><div class="kpi-icon-plain" style="color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="label" style="color:${k.color}; opacity:0.85;">${k.label}</div><div class="value" style="color:${k.color};">${k.value}</div></div>`;
   }).join('');
   document.getElementById('riepilogo-globale').innerHTML = heroHtml + `<div class="riepilogo-sec-grid">${secHtml}</div>`;
   renderRiepilogoDetail();
