@@ -189,9 +189,11 @@
   th:nth-child(4), td:nth-child(4){padding-left:8px;}
   th{color:var(--text-secondary); font-weight:500; font-size:12px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--surface);}
   tbody tr:hover{background:var(--surface-2);}
-  .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:500;}
+  .badge{display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:500;}
   .client-name-cell{display:inline-flex; align-items:center; gap:8px;}
   .avatar{display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:700; flex-shrink:0;}
+  .avatar-female{background:#fbdce7; color:#9c1f56;}
+  .avatar-male{background:#18181a; color:#ffffff;}
   .empty-state{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 20px; color:var(--text-muted); text-align:center;}
   .empty-state i{font-size:26px; opacity:0.45;}
   .empty-state p{margin:0; font-size:13px;}
@@ -1010,8 +1012,15 @@ function getInitials(name){
   if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
   return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
 }
+const MALE_NAMES_ENDING_IN_A = ['andrea','luca','nicola','mattia','elia','cosma','bonaventura','gionata','barnaba','tobia','geremia','nehemia','isaia','osea','giosia'];
+function guessIsFemale(name){
+  const first = (name||'').trim().split(/\s+/)[0] || '';
+  const norm = first.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  if(MALE_NAMES_ENDING_IN_A.includes(norm)) return false;
+  return norm.endsWith('a');
+}
 function avatarHtml(name){
-  const cls = name ? ensureAutoBadgeClass(name) : 'b-perc-altro';
+  const cls = !name ? 'b-perc-altro' : (guessIsFemale(name) ? 'avatar-female' : 'avatar-male');
   return `<span class="avatar ${cls}">${escHtml(getInitials(name))}</span>`;
 }
 function nameCellHtml(name){
