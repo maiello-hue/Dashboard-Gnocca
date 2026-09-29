@@ -1667,6 +1667,11 @@ function renderContattiList(data, dataset){
       sel.addEventListener('change', ()=>{
         sel.className = `cr-select ${contattoSelectClass(sel.value)}`;
         setDoc(doc(db, CONTATTI_COLLECTIONS[dataset], sel.dataset.id), {stato_contatto: sel.value}, {merge:true});
+        const fStatoNow = document.getElementById('gc-filter-stato-contatto-'+dataset).value;
+        if(sel.value==='Non rinnova' && fStatoNow!=='Non rinnova'){
+          const row = sel.closest('.contatto-row');
+          if(row) row.remove();
+        }
       });
     });
     const noteTimers = {};
@@ -1686,10 +1691,12 @@ function renderContattiList(data, dataset){
     const fStato = document.getElementById('gc-filter-stato-contatto-'+dataset).value;
     const filtered = rows.filter(d=>{
       if(search && !d.cliente.toLowerCase().includes(search)) return false;
+      const id = contattiId(d);
+      const cur = (contattiState[dataset][id]||{}).stato_contatto || 'Da contattare';
       if(fStato){
-        const id = contattiId(d);
-        const cur = (contattiState[dataset][id]||{}).stato_contatto || 'Da contattare';
         if(cur !== fStato) return false;
+      } else if(cur === 'Non rinnova'){
+        return false;
       }
       return true;
     });
@@ -1708,6 +1715,11 @@ function renderContattiList(data, dataset){
     if(sel && document.activeElement !== sel && docData.stato_contatto){
       sel.value = docData.stato_contatto;
       sel.className = `cr-select ${contattoSelectClass(docData.stato_contatto)}`;
+      const fStatoNow = document.getElementById('gc-filter-stato-contatto-'+dataset).value;
+      if(docData.stato_contatto==='Non rinnova' && fStatoNow!=='Non rinnova'){
+        row.remove();
+        return;
+      }
     }
     if(inp && document.activeElement !== inp && docData.nota !== undefined) inp.value = docData.nota;
   });
