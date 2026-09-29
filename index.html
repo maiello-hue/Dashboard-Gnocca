@@ -732,10 +732,11 @@ const VENDITORE_OPTIONS = ['Personal_G','Salvatore','Peppe'];
 const NUTRI_OPTIONS = ['Non assegnato','Alessia','Matilde','Nicole','Sofia','Vanessa'];
 const PT_EXTRA_OPTIONS = ['Nessuno','Federica','Fiorenzo','Gianmiki','Marco','Matteo','Personal_G'];
 const TRAINER_OPTIONS = ['Non assegnato','Federica','Fiorenzo','Gianmiki','Marco','Matteo','Personal_G'];
+const PAGAMENTO_OPTIONS = ['Non specificato','Bonifico','PayPal','Scalapay','PagoDIL','HeyLight','Qomodo','EVA'];
 
 // ================= IMPOSTAZIONI (liste a tendina, sync, aspetto) =================
-const OPTION_LISTS = {percorso:PERCORSO_OPTIONS, venditore:VENDITORE_OPTIONS, nutrizione:NUTRI_OPTIONS, pt_extra:PT_EXTRA_OPTIONS, trainer:TRAINER_OPTIONS};
-const OPTION_LABELS = {percorso:'Percorso', venditore:'Venditore', nutrizione:'Nutrizionista / Nutrizione', pt_extra:'PT extra (Gnocca)', trainer:'Trainer (No Tutor)'};
+const OPTION_LISTS = {percorso:PERCORSO_OPTIONS, venditore:VENDITORE_OPTIONS, nutrizione:NUTRI_OPTIONS, pt_extra:PT_EXTRA_OPTIONS, trainer:TRAINER_OPTIONS, pagamento:PAGAMENTO_OPTIONS};
+const OPTION_LABELS = {percorso:'Percorso', venditore:'Venditore', nutrizione:'Nutrizionista / Nutrizione', pt_extra:'PT extra (Gnocca)', trainer:'Trainer (No Tutor)', pagamento:'Pagamento'};
 const SETTINGS_COLLECTION = 'impostazioni_dashboard';
 const SETTINGS_DOC_ID = 'opzioni';
 function saveOptionList(key){
@@ -966,7 +967,7 @@ const FIELD_CONFIGS = {
     {key:'inizio', label:'Inizio', type:'date', group:'Abbonamento'},
     {key:'fine', label:'Fine', type:'date', group:'Abbonamento'},
     {key:'importo', label:'Importo (EUR)', type:'number', group:'Abbonamento'},
-    {key:'pagamento', label:'Pagamento', type:'text', group:'Abbonamento'},
+    {key:'pagamento', label:'Pagamento', type:'select', options:PAGAMENTO_OPTIONS, allowBlank:true, group:'Abbonamento'},
     {key:'nutrizione', label:'Nutrizionista', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Assegnazioni'},
     {key:'pt_extra', label:'Trainer', type:'select', options:PT_EXTRA_OPTIONS, allowBlank:true, group:'Assegnazioni'},
     {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Assegnazioni'},
@@ -980,7 +981,7 @@ const FIELD_CONFIGS = {
     {key:'inizio', label:'Inizio', type:'date', group:'Abbonamento'},
     {key:'fine', label:'Fine', type:'date', group:'Abbonamento'},
     {key:'importo', label:'Importo (EUR)', type:'number', group:'Abbonamento'},
-    {key:'pagamento', label:'Pagamento', type:'text', group:'Abbonamento'},
+    {key:'pagamento', label:'Pagamento', type:'select', options:PAGAMENTO_OPTIONS, allowBlank:true, group:'Abbonamento'},
     {key:'trainer', label:'Trainer', type:'select', options:TRAINER_OPTIONS, allowBlank:true, group:'Assegnazioni'},
     {key:'nutrizionista', label:'Nutrizionista', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Assegnazioni'},
     {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Assegnazioni'},
@@ -993,7 +994,7 @@ const FIELD_CONFIGS = {
     {key:'percorso', label:'Percorso', type:'select', options:PERCORSO_OPTIONS, allowBlank:true, group:'Percorso'},
     {key:'inizio', label:'Inizio', type:'date', group:'Percorso'},
     {key:'fine', label:'Fine', type:'date', group:'Percorso'},
-    {key:'pagamento', label:'Pagamento', type:'text', group:'Pagamento'},
+    {key:'pagamento', label:'Pagamento', type:'select', options:PAGAMENTO_OPTIONS, allowBlank:true, group:'Pagamento'},
     {key:'importo', label:'Importo (EUR)', type:'number', group:'Pagamento'},
     {key:'venditore', label:'Venditore', type:'select', options:VENDITORE_OPTIONS, allowBlank:true, group:'Pagamento'},
     {key:'nutrizione', label:'Nutrizione', type:'select', options:NUTRI_OPTIONS, allowBlank:true, group:'Extra'},
