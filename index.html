@@ -579,6 +579,7 @@ function startFirestoreListeners(){
       else{ sessioniState[id] = {...change.doc.data(), _id:id}; }
     });
     if(typeof sectionInitialized!=='undefined' && sectionInitialized.prenotazioni) renderSessioniList();
+    if(typeof renderedViews!=='undefined' && renderedViews['analisi_gnocca']) renderGnoccaAnalisi();
   }, ()=>{ firestoreError = true; updateConnStatus(); });
 
   Object.keys(CLIENTI_COLLECTIONS).forEach(key=>{
@@ -1442,12 +1443,16 @@ function renderGnoccaAnalisi(){
 
   const totClienti = data.length;
   const attivi = data.filter(d=>d.stato==='IN PERCORSO').length;
-  const totIncasso = data.reduce((s,d)=>s+d.importo,0);
+  const sessioniGnocca = Object.values(sessioniState);
+  const allenamentiSvolti = sessioniGnocca.filter(s=>s.presenza==='Presente' || s.presenza==='Assente').length;
+  const presentiCount = sessioniGnocca.filter(s=>s.presenza==='Presente').length;
+  const assentiCount = sessioniGnocca.filter(s=>s.presenza==='Assente').length;
+  const presenzaMedia = (presentiCount+assentiCount) ? Math.round((presentiCount/(presentiCount+assentiCount))*100) : 0;
   document.getElementById('g-kpi').innerHTML = [
     {label:'Clienti totali', value: totClienti, sub: `${attivi} in percorso`},
-    {label:'Incasso totale', value: fmtEUR(totIncasso), sub: 'somma di tutti gli importi'},
+    {label:'Allenamenti svolti', value: allenamentiSvolti, sub: 'sessioni registrate'},
     {label:'Clienti attivi', value: data.filter(d=>d.situazione==='ATTIVA').length, sub: 'livello attivita: ATTIVA'},
-    {label:'Importo medio', value: fmtEUR(totIncasso/totClienti), sub: 'per cliente'},
+    {label:'Presenza media', value: `${presenzaMedia}%`, sub: (presentiCount+assentiCount) ? `${presentiCount} presenti su ${presentiCount+assentiCount}` : 'nessun dato ancora'},
   ].map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`).join('');
 
   const statoM = countBy(data,'stato');
