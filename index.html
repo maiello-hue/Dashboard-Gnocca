@@ -35,7 +35,7 @@
   }
   .wrap{max-width:1600px; margin:0 auto;}
   h1{font-size:22px; font-weight:500; margin:0 0 4px;}
-  .title-row{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .title-row{display:flex; align-items:center; gap:12px; margin-bottom:2px;}
   .title-row h1{margin:0 0 4px;}
   .brand-super{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); margin:0 0 2px;}
   .brand-title{margin:0; line-height:1.1; font-size:28px; font-weight:700; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;}
@@ -43,7 +43,7 @@
   .subtitle{color:var(--text-secondary); font-size:14px; margin:0 0 20px;}
   .app-layout{display:flex; gap:24px; align-items:flex-start;}
   .sidebar{width:230px; flex-shrink:0; background:linear-gradient(165deg,#26262b,#0c0c0e); border:none; border-radius:16px; padding:16px 10px; position:sticky; top:24px;}
-  .sidebar.align-dash{margin-top:40px;}
+  .sidebar.align-dash{margin-top:34px;}
   .side-label{font-size:11px; font-weight:500; color:#8b8a95; text-transform:uppercase; letter-spacing:0.04em; padding:10px 12px 6px;}
   .side-btn{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:none; border:none; padding:11px 14px; border-radius:14px; font-size:14px; color:#c9c8c2; cursor:pointer; margin-bottom:2px; transition:background 0.15s ease, color 0.15s ease;}
   .side-btn i{width:18px; text-align:center; font-size:15px; color:#9c9b93;}
@@ -271,7 +271,7 @@
   .btn-icon:hover{background:var(--surface); color:var(--text);}
   .btn-icon:disabled{opacity:0.35; cursor:not-allowed;}
   .btn-icon:disabled:hover{background:none; color:var(--text-secondary);}
-  .dash-month-picker{display:flex; align-items:center; justify-content:flex-end; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
+  .dash-month-picker{display:flex; align-items:center; justify-content:flex-end; margin-bottom:6px; flex-wrap:wrap; gap:8px;}
   .dash-month-switch{display:flex; align-items:center; gap:8px;}
   .dash-month-current{font-size:13px; font-weight:500; min-width:110px; text-align:center; text-transform:capitalize;}
   .btn-delete-client:hover{color:#a32d2d; border-color:#f09595;}
@@ -2397,7 +2397,7 @@ function renderRiepilogoGlobale(){
   const secGrad = 'linear-gradient(150deg,#fdfdff,#f1f2f7)';
   const secBorder = '0.5px solid #ececf2';
   const secCards = [
-    {label:'Attive', value: inPercorso, icon:'fa-route', filter:'IN PERCORSO', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Attive', value: inPercorso, icon:'fa-user-check', filter:'IN PERCORSO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:secGrad, color:'#18181a', border:secBorder},
