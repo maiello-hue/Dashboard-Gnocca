@@ -221,6 +221,10 @@
   .b-vend-personalg{background:#1c1c1a; color:#ffffff;}
   .b-vend-peppe{background:#e6f1fb; color:#0c447c;}
   .b-vend-altro{background:#e9e9e9; color:#555555;}
+  .b-vend-blue{background:#2a78d6; color:#ffffff;}
+  .b-vend-green{background:#008300; color:#ffffff;}
+  .b-vend-gray{background:#7a7972; color:#ffffff;}
+  .b-vend-pink{background:#e0245e; color:#ffffff;}
   .b-nutri-nicole{background:#fdf1d6; color:#8a5a00;}
   .b-nutri-alessia{background:#fcebeb; color:#791f1f;}
   .b-nutri-vanessa{background:#fbe4ec; color:#9c1f56;}
@@ -1368,14 +1372,26 @@ function situazioneBadgeClass(s){
   if(up==='NON ATTIVA') return 'b-situ-non';
   return 'b-situ-altro';
 }
+const VENDITORE_COLOR_MAP = {
+  'ecommerce':'b-vend-blue',
+  'salvatore':'b-vend-green',
+  'personal_g':'b-vend-personalg',
+  'gennaro':'b-vend-gray',
+  'martina':'b-vend-gray',
+  'manuela':'b-vend-pink',
+  'sabrina':'b-vend-gray',
+  'mara':'b-vend-pink',
+  'margherita':'b-vend-pink',
+  'peppe':'b-vend-gray',
+  'duccio':'b-vend-gray',
+  'selene':'b-vend-gray',
+  'giulia':'b-vend-pink',
+};
 function venditoreHtml(v){
   if(!v) return v;
   if(v==='Non specificato') return '-';
-  let cls = null;
-  if(v==='Salvatore') cls = 'b-vend-salvatore';
-  else if(v==='Personal_G') cls = 'b-vend-personalg';
-  else if(v==='Peppe') cls = 'b-vend-peppe';
-  else cls = ensureAutoBadgeClass(v);
+  const key = v.trim().toLowerCase();
+  const cls = VENDITORE_COLOR_MAP[key] || ensureAutoBadgeClass(v);
   return `<span class="badge ${cls}">${escHtml(v)}</span>`;
 }
 let chartInstances = {};
