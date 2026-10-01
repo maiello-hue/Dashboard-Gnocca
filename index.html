@@ -1831,20 +1831,25 @@ function renderPrenotazioni(){
           <option value="">Tutte le presenze</option>
           ${PRESENZA_OPTIONS.map(p=>`<option value="${p}">${p}</option>`).join('')}
         </select>
+        <span class="pill-tabs" style="margin-left:auto">
+          <button type="button" class="pill-btn ${prenVista==='agenda'?'active':''}" data-vista="agenda">Agenda</button>
+          <button type="button" class="pill-btn ${prenVista==='elenco'?'active':''}" data-vista="elenco">Elenco</button>
+        </span>
       </div>
     </div>
-    <div class="panel">
-      <h2><i class="fa-solid fa-calendar-check"></i> Prossime prenotazioni <span class="scadenze-mini-count" id="sess-upcoming-count"></span></h2>
-      <div class="contatti-list" id="sess-upcoming-list"></div>
-    </div>
-    <div class="panel">
-      <h2><i class="fa-solid fa-dumbbell"></i> Allenamenti svolti <span class="scadenze-mini-count" id="sess-past-count"></span></h2>
-      <div class="contatti-list" id="sess-past-list"></div>
-    </div>
+    <div id="sess-vista"></div>
   `;
   document.getElementById('sess-add-btn').addEventListener('click', ()=>openSessioneModal(null));
   document.getElementById('sess-search').addEventListener('input', renderSessioniList);
   document.getElementById('sess-filter-presenza').addEventListener('change', renderSessioniList);
+  document.querySelectorAll('#prenotazioni-content .pill-btn[data-vista]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      prenVista = b.dataset.vista;
+      document.querySelectorAll('#prenotazioni-content .pill-btn[data-vista]')
+        .forEach(x=>x.classList.toggle('active', x.dataset.vista===prenVista));
+      renderSessioniList();
+    });
+  });
   document.getElementById('prenotazioni-content').addEventListener('click', (e)=>{
     const editBtn = e.target.closest('.btn-edit-sessione');
     if(editBtn){ openSessioneModal(editBtn.dataset.id); return; }
@@ -1878,7 +1883,205 @@ function sessioneRowHtml(s){
     ${azioni}
   </div>`;
 }
+/* L'agenda e' la vista di lavoro: i turni raggruppati per giorno e per ora,
+   con sotto i nomi di chi c'e'. L'elenco vecchio resta come seconda vista,
+   perche' per cercare una cliente o correggere una sessione scritta a mano e'
+   piu' comodo. */
+let prenVista = 'agenda';          // agenda | elenco
+let prenSettimana = 0;             // 0 = settimana corrente, -1 indietro, +1 avanti
+const GIORNI_FERMA = 14;           // da quanti giorni di silenzio una cliente compare in fondo
+
+function lunediDi(offsetSettimane){
+  const d = new Date(); d.setHours(0,0,0,0);
+  const giorno = (d.getDay() + 6) % 7;          // lunedi' = 0
+  d.setDate(d.getDate() - giorno + offsetSettimane * 7);
+  return d;
+}
+function isoGiorno(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+const GIORNI_IT = ['lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'];
+const GIORNI_IT_BREVI = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const MESI_IT_LUNGHI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
 function renderSessioniList(){
+  const host = document.getElementById('sess-vista');
+  if(!host) return;
+  if(prenVista === 'agenda'){ host.innerHTML = agendaHtml(); agganciaAgenda(host); return; }
+  host.innerHTML = `
+    <div class="panel">
+      <h2><i class="fa-solid fa-calendar-check"></i> Prossime prenotazioni <span class="scadenze-mini-count" id="sess-upcoming-count"></span></h2>
+      <div class="contatti-list" id="sess-upcoming-list"></div>
+    </div>
+    <div class="panel">
+      <h2><i class="fa-solid fa-dumbbell"></i> Allenamenti svolti <span class="scadenze-mini-count" id="sess-past-count"></span></h2>
+      <div class="contatti-list" id="sess-past-list"></div>
+    </div>`;
+  renderSessioniElenco();
+}
+
+function agganciaAgenda(host){
+  host.querySelectorAll('[data-sett]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      prenSettimana = b.dataset.sett === 'oggi' ? 0 : prenSettimana + (+b.dataset.sett);
+      renderSessioniList();
+    });
+  });
+  host.querySelectorAll('[data-wa-nome]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const tel = telefonoDaSchede(b.dataset.waNome);
+      if(!tel){ showToast('Questa cliente non ha un numero in anagrafica', 'error'); return; }
+      openWaModal({ cliente: b.dataset.waNome, telefono: tel, percorso: 'Gnocca' });
+    });
+  });
+}
+
+/* Le righe dell'agenda sono solo quelle vere dell'Area clienti: le sessioni
+   scritte a mano non hanno l'ora, e in un'agenda oraria non saprebbero dove
+   stare. Restano tutte nella vista Elenco. */
+function agendaHtml(){
+  const search = (document.getElementById('sess-search').value || '').toLowerCase();
+  const fPresenza = document.getElementById('sess-filter-presenza').value;
+  const righe = prenAreaClienti.filter(s=>{
+    if(search && !(s.cliente||'').toLowerCase().includes(search)) return false;
+    if(fPresenza && s.presenza !== fPresenza) return false;
+    return true;
+  });
+
+  const lun = lunediDi(prenSettimana);
+  const giorni = [];
+  for(let i=0;i<7;i++){ const d = new Date(lun); d.setDate(d.getDate()+i); giorni.push(d); }
+  const perGiorno = {};
+  righe.forEach(s=>{
+    const d = parseDate(s.data);
+    if(!d) return;
+    const k = isoGiorno(d);
+    (perGiorno[k] = perGiorno[k] || []).push(s);
+  });
+
+  const fine = giorni[6];
+  const titolo = lun.getDate() + ' ' + MESI_IT_LUNGHI[lun.getMonth()] + ' – ' + fine.getDate() + ' ' + MESI_IT_LUNGHI[fine.getMonth()];
+  const nellaSettimana = giorni.reduce((n,d)=> n + ((perGiorno[isoGiorno(d)]||[]).length), 0);
+  const clientiDistinte = new Set(giorni.flatMap(d=>(perGiorno[isoGiorno(d)]||[]).map(s=>s.cliente))).size;
+
+  let html = '<div class="panel">'
+    + '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px">'
+    +   '<div><h2 style="margin:0">Settimana ' + escHtml(titolo) + '</h2>'
+    +   '<div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px">'
+    +     nellaSettimana + (nellaSettimana===1 ? ' prenotazione' : ' prenotazioni')
+    +     ' · ' + clientiDistinte + (clientiDistinte===1 ? ' cliente' : ' clienti') + '</div></div>'
+    +   '<div style="display:flex; gap:6px">'
+    +     '<button type="button" class="btn-icon" data-sett="-1">&#8249;</button>'
+    +     '<button type="button" class="btn-icon" data-sett="oggi">Questa settimana</button>'
+    +     '<button type="button" class="btn-icon" data-sett="1">&#8250;</button>'
+    +   '</div>'
+    + '</div>';
+
+  /* La striscia dei sette giorni: dice dove c'e' movimento prima ancora di
+     leggere i nomi. */
+  const oggiIso = isoGiorno(new Date());
+  html += '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:16px">';
+  giorni.forEach((d,i)=>{
+    const k = isoGiorno(d);
+    const n = (perGiorno[k]||[]).length;
+    const oggi = k === oggiIso;
+    html += '<div style="border:0.5px solid var(--border); border-radius:10px; padding:8px 4px; text-align:center;'
+      + (oggi ? 'background:var(--text-primary, #17181c); color:#fff' : 'background:var(--surface)') + '">'
+      + '<div style="font-size:10px; text-transform:uppercase; letter-spacing:.6px; opacity:.7; font-weight:700">' + GIORNI_IT_BREVI[i] + '</div>'
+      + '<div style="font-size:17px; font-weight:700; margin-top:2px' + (n ? '' : '; opacity:.45') + '">' + d.getDate() + '</div>'
+      + '<div style="font-size:10.5px; opacity:.7; margin-top:3px">' + (n ? n + ' pren.' : '—') + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  if(prenAreaStato === 'serve-accesso'){
+    html += '<div style="font-size:12.5px; color:var(--text-secondary)">Le prenotazioni non sono caricate: collegati una volta dalla sezione <b>Link di accesso</b> e torna qui.</div></div>';
+    return html;
+  }
+
+  giorni.forEach((d,i)=>{
+    const k = isoGiorno(d);
+    const delGiorno = (perGiorno[k]||[]).slice().sort((a,b)=> String(a.ora).localeCompare(String(b.ora)));
+    if(!delGiorno.length) return;
+    const etichetta = (k === oggiIso ? 'Oggi · ' : '') + GIORNI_IT[i] + ' ' + d.getDate() + ' ' + MESI_IT_LUNGHI[d.getMonth()];
+    html += '<div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-secondary); margin:16px 0 8px">'
+      + escHtml(etichetta) + ' <span style="font-weight:600; text-transform:none; letter-spacing:0">· '
+      + delGiorno.length + (delGiorno.length===1?' prenotazione':' prenotazioni') + '</span></div>';
+
+    /* Un riquadro per turno (stessa ora + stesso trainer): e' cosi' che si
+       legge un'agenda, non una riga per prenotazione. */
+    const turni = {};
+    delGiorno.forEach(s=>{
+      const key = s.ora + '|' + s.trainer;
+      (turni[key] = turni[key] || []).push(s);
+    });
+    Object.keys(turni).sort().forEach(key=>{
+      const gruppo = turni[key];
+      const ora = gruppo[0].ora, trainer = gruppo[0].trainer;
+      html += '<div style="display:flex; gap:12px; border:0.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px; background:var(--surface)">'
+        + '<div style="min-width:52px; font-weight:800; font-size:15px">' + escHtml(ora) + '</div>'
+        + '<div style="flex:1; min-width:0">'
+        +   '<span class="badge" style="background:#eef2fb; color:#2b5bb5">' + escHtml(trainer || 'Trainer non indicato') + '</span>'
+        +   '<span style="font-size:11.5px; color:var(--text-secondary); margin-left:7px">'
+        +     gruppo.length + (gruppo.length===1 ? ' iscritta' : ' iscritte') + '</span>'
+        +   '<div style="margin-top:8px; display:flex; flex-direction:column; gap:5px">'
+        +     gruppo.map(s=>'<div style="display:flex; align-items:center; gap:8px; font-size:13.5px">'
+        +       '<span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">' + escHtml(s.cliente) + '</span>'
+        +       '<span class="badge ' + presenzaBadgeClass(s.presenza) + '">' + escHtml(s.presenza) + '</span>'
+        +       '<button type="button" class="btn-icon" data-wa-nome="' + escAttr(s.cliente) + '" style="background:#189a56; border-color:#189a56; color:#fff"><i class="fa-brands fa-whatsapp"></i></button>'
+        +     '</div>').join('')
+        +   '</div>'
+        + '</div></div>';
+    });
+  });
+
+  if(!nellaSettimana) html += '<div style="font-size:13px; color:var(--text-secondary)">Nessuna prenotazione in questa settimana.</div>';
+  html += '</div>';
+  html += fermeHtml();
+  return html;
+}
+
+/* Chi non prenota da un po'. Il conto si basa sulle prenotazioni lette da
+   Supabase (ultimi 30 giorni + futuro): una cliente senza nessuna riga li'
+   dentro non si allena da almeno un mese, e lo diciamo con quelle parole
+   invece di inventare un numero preciso. */
+function fermeHtml(){
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const ultima = {};
+  let haFuturo = {};
+  prenAreaClienti.forEach(s=>{
+    const d = parseDate(s.data);
+    if(!d) return;
+    const k = (s.cliente||'').trim();
+    if(d > oggi) haFuturo[k] = true;
+    if(!ultima[k] || d > ultima[k]) ultima[k] = d;
+  });
+  const righe = (RAW.gnocca||[]).map(c=>{
+    const nome = (c.cliente||'').trim();
+    if(!nome || haFuturo[nome]) return null;
+    const u = ultima[nome];
+    if(!u) return { nome, testo: 'nessuna prenotazione da almeno 30 giorni', giorni: 999 };
+    const giorni = Math.round((oggi - u) / 86400000);
+    if(giorni < GIORNI_FERMA) return null;
+    return { nome, testo: 'ferma da ' + giorni + ' giorni', giorni };
+  }).filter(Boolean).sort((a,b)=> b.giorni - a.giorni);
+
+  let html = '<div class="panel"><h2 style="margin:0"><i class="fa-solid fa-person-walking-arrow-right"></i> Chi non prenota da un po\'</h2>'
+    + '<div style="font-size:12.5px; color:var(--text-secondary); margin:2px 0 12px">Nessuna prenotazione futura e nessuna negli ultimi ' + GIORNI_FERMA + ' giorni</div>';
+  if(!righe.length){
+    html += '<div style="font-size:13px; color:var(--text-secondary)">Nessuna: si stanno allenando tutte.</div>';
+  } else {
+    html += righe.slice(0, 40).map(r=>'<div style="display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:0.5px solid var(--border); font-size:13.5px">'
+      + '<span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">' + escHtml(r.nome) + '</span>'
+      + '<span class="badge badge-presenza-assente">' + escHtml(r.testo) + '</span>'
+      + '<button type="button" class="btn-icon" data-wa-nome="' + escAttr(r.nome) + '" style="background:#189a56; border-color:#189a56; color:#fff"><i class="fa-brands fa-whatsapp"></i></button>'
+      + '</div>').join('');
+    if(righe.length > 40) html += '<div style="font-size:12px; color:var(--text-secondary); padding-top:8px">…e altre ' + (righe.length-40) + '.</div>';
+  }
+  return html + '</div>';
+}
+
+function renderSessioniElenco(){
   const listUp = document.getElementById('sess-upcoming-list');
   const listPast = document.getElementById('sess-past-list');
   if(!listUp) return;
