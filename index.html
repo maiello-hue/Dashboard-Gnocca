@@ -1785,6 +1785,37 @@ function presenzaBadgeClass(p){
 function sessioneId(){
   return 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
 }
+/* Le prenotazioni vere dell'Area clienti (1/10/2026).
+   Non stanno su Firebase: vivono su Supabase, dove le fanno le clienti. Qui si
+   LEGGONO e basta — nessuna copia, nessuna scrittura: il dato resta uno solo e
+   non puo' divergere. Le sessioni scritte a mano con il + restano quelle di
+   sempre e convivono con queste, distinte dall'etichetta "Area clienti".
+   Servono le credenziali Supabase: le stesse della sezione Link di accesso. */
+let prenAreaClienti = [];       // righe lette da Supabase
+let prenAreaStato = 'mai';      // mai | ok | serve-accesso | errore
+
+async function caricaPrenotazioniArea(){
+  let sb;
+  try { sb = await sbGnocca(); } catch(e){ prenAreaStato = 'errore'; return; }
+  const sess = await sb.auth.getSession();
+  if(!sess.data || !sess.data.session){ prenAreaStato = 'serve-accesso'; prenAreaClienti = []; return; }
+  const da = new Date(); da.setDate(da.getDate() - 30);
+  const r = await sb.rpc('prenotazioni_gnocca', { p_da: da.toISOString().slice(0,10) });
+  if(r.error){ prenAreaStato = 'errore'; prenAreaClienti = []; return; }
+  prenAreaStato = 'ok';
+  prenAreaClienti = (r.data||[]).map(x => ({
+    _id: 'area-' + x.prenotazione_id,
+    _area: true,
+    cliente: x.cliente,
+    data: isoToItDate(String(x.data)),
+    ora: String(x.ora||'').slice(0,5),
+    trainer: x.pt_nome || '',
+    /* "Prenotata" finche' il trainer non segna la presenza: le stesse tre
+       parole delle sessioni scritte a mano, cosi' il filtro vale per entrambe. */
+    presenza: x.presenza === true ? 'Presente' : (x.presenza === false ? 'Assente' : 'Prenotata')
+  }));
+}
+
 function renderPrenotazioni(){
   document.getElementById('prenotazioni-content').innerHTML = `
     <div class="panel">
@@ -1821,21 +1852,30 @@ function renderPrenotazioni(){
     if(delBtn){ deleteSessione(delBtn.dataset.id); return; }
   });
   renderSessioniList();
+  /* Si rilegge a ogni apertura della sezione: le clienti prenotano e disdicono
+     di continuo, una copia vecchia in memoria direbbe bugie. */
+  caricaPrenotazioniArea().then(renderSessioniList);
 }
 function sessioneRowHtml(s){
+  /* Le righe che arrivano dall'Area clienti non si modificano da qui: le ha
+     scritte la cliente prenotando, e la presenza la segna il trainer. Al posto
+     dei tasti c'e' l'etichetta che dice da dove vengono. */
+  const azioni = s._area
+    ? `<span class="detail-actions"><span class="badge" style="background:#eef2fb; color:#2b5bb5">Area clienti</span></span>`
+    : `<span class="detail-actions">
+      <button type="button" class="btn-icon btn-edit-sessione" data-id="${escAttr(s._id)}"><i class="fa-solid fa-pen"></i>Modifica</button>
+      <button type="button" class="btn-icon btn-delete-sessione" data-id="${escAttr(s._id)}"><i class="fa-solid fa-trash"></i>Elimina</button>
+    </span>`;
   return `<div class="contatto-row" data-id="${escAttr(s._id)}">
     <div class="cr-info">
       <span class="cr-nome" title="${escAttr(s.cliente)}">${escHtml(s.cliente)}</span>
       <span class="badge ${presenzaBadgeClass(s.presenza)}">${escHtml(s.presenza)}</span>
-      <span class="sess-trainer">${s.trainer ? escHtml(s.trainer) : 'Trainer non assegnato'}</span>
+      <span class="sess-trainer">${s.trainer ? escHtml(s.trainer) : 'Trainer non assegnato'}${s.ora ? ' · ' + escHtml(s.ora) : ''}</span>
     </div>
     <div class="cr-date">
       <span class="cr-data">${escHtml(s.data)}</span>
     </div>
-    <span class="detail-actions">
-      <button type="button" class="btn-icon btn-edit-sessione" data-id="${escAttr(s._id)}"><i class="fa-solid fa-pen"></i>Modifica</button>
-      <button type="button" class="btn-icon btn-delete-sessione" data-id="${escAttr(s._id)}"><i class="fa-solid fa-trash"></i>Elimina</button>
-    </span>
+    ${azioni}
   </div>`;
 }
 function renderSessioniList(){
@@ -1845,7 +1885,7 @@ function renderSessioniList(){
   const search = (document.getElementById('sess-search').value || '').toLowerCase();
   const fPresenza = document.getElementById('sess-filter-presenza').value;
   const today = new Date(); today.setHours(0,0,0,0);
-  const all = Object.values(sessioniState).filter(s=>{
+  const all = Object.values(sessioniState).concat(prenAreaClienti).filter(s=>{
     if(search && !(s.cliente||'').toLowerCase().includes(search)) return false;
     if(fPresenza && s.presenza !== fPresenza) return false;
     return true;
@@ -1856,7 +1896,12 @@ function renderSessioniList(){
     .sort((a,b)=>(parseDate(b.data)||0)-(parseDate(a.data)||0));
   document.getElementById('sess-upcoming-count').textContent = upcoming.length ? `· ${upcoming.length}` : '';
   document.getElementById('sess-past-count').textContent = past.length ? `· ${past.length}` : '';
-  listUp.innerHTML = upcoming.length ? upcoming.map(sessioneRowHtml).join('') : emptyStateHtml('fa-calendar-check', 'Nessuna prenotazione futura.');
+  const nota = prenAreaStato === 'serve-accesso'
+    ? '<div style="font-size:12.5px; color:var(--text-secondary); padding:8px 0">Le prenotazioni fatte dalle clienti non sono caricate: collegati una volta dalla sezione <b>Link di accesso</b> e torna qui.</div>'
+    : (prenAreaStato === 'errore'
+        ? '<div style="font-size:12.5px; color:#b3312f; padding:8px 0">Non riesco a leggere le prenotazioni dell\'Area clienti.</div>'
+        : '');
+  listUp.innerHTML = nota + (upcoming.length ? upcoming.map(sessioneRowHtml).join('') : emptyStateHtml('fa-calendar-check', 'Nessuna prenotazione futura.'));
   listPast.innerHTML = past.length ? past.map(sessioneRowHtml).join('') : emptyStateHtml('fa-dumbbell', 'Nessun allenamento registrato.');
 }
 let sessioneModalContext = null;
