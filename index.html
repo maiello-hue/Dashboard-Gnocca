@@ -1813,6 +1813,22 @@ function presenzaBadgeClass(p){
   if(p==='Assente') return 'badge-presenza-assente';
   return 'badge-presenza-prenotata';
 }
+/* Se sono passate 24 ore dall'orario della sessione e il trainer non ha ancora
+   segnato la presenza (resta "Prenotata"), la mostriamo come "Assente": non
+   tocchiamo il dato salvato, solo quello che si vede in dashboard. */
+function presenzaVisualizzata(s){
+  if(s.presenza !== 'Prenotata') return s.presenza;
+  const d = parseDate(s.data);
+  if(!d) return s.presenza;
+  const dt = new Date(d);
+  if(s.ora){
+    const [hh, mm] = s.ora.split(':').map(Number);
+    dt.setHours(hh||0, mm||0, 0, 0);
+  } else {
+    dt.setHours(23,59,59,999);
+  }
+  return (Date.now() - dt.getTime() >= 24*60*60*1000) ? 'Assente' : s.presenza;
+}
 function sessioneId(){
   return 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
 }
@@ -1902,10 +1918,11 @@ function sessioneRowHtml(s){
       <button type="button" class="btn-icon btn-edit-sessione" data-id="${escAttr(s._id)}"><i class="fa-solid fa-pen"></i>Modifica</button>
       <button type="button" class="btn-icon btn-delete-sessione" data-id="${escAttr(s._id)}"><i class="fa-solid fa-trash"></i>Elimina</button>
     </span>`;
+  const presV = presenzaVisualizzata(s);
   return `<div class="contatto-row" data-id="${escAttr(s._id)}">
     <div class="cr-info">
       <span class="cr-nome" title="${escAttr(s.cliente)}">${escHtml(s.cliente)}</span>
-      <span class="badge ${presenzaBadgeClass(s.presenza)}">${escHtml(s.presenza)}</span>
+      <span class="badge ${presenzaBadgeClass(presV)}">${escHtml(presV)}</span>
       <span class="sess-trainer">${s.trainer ? escHtml(s.trainer) : 'Trainer non assegnato'}${s.ora ? ' · ' + escHtml(s.ora) : ''}</span>
     </div>
     <div class="cr-date">
@@ -1975,7 +1992,7 @@ function agendaHtml(){
   const fPresenza = document.getElementById('sess-filter-presenza').value;
   const righe = prenAreaClienti.filter(s=>{
     if(search && !(s.cliente||'').toLowerCase().includes(search)) return false;
-    if(fPresenza && s.presenza !== fPresenza) return false;
+    if(fPresenza && presenzaVisualizzata(s) !== fPresenza) return false;
     return true;
   });
 
@@ -2058,7 +2075,7 @@ function agendaHtml(){
         +   '<div style="margin-top:8px; display:flex; flex-direction:column; gap:5px">'
         +     gruppo.map(s=>'<div style="display:flex; align-items:center; gap:8px; font-size:13.5px">'
         +       '<span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">' + escHtml(s.cliente) + '</span>'
-        +       '<span class="badge ' + presenzaBadgeClass(s.presenza) + '">' + escHtml(s.presenza) + '</span>'
+        +       '<span class="badge ' + presenzaBadgeClass(presenzaVisualizzata(s)) + '">' + escHtml(presenzaVisualizzata(s)) + '</span>'
         +       '<button type="button" class="btn-icon" data-wa-nome="' + escAttr(s.cliente) + '" style="background:#189a56; border-color:#189a56; color:#fff"><i class="fa-brands fa-whatsapp"></i></button>'
         +     '</div>').join('')
         +   '</div>'
@@ -2121,7 +2138,7 @@ function renderSessioniElenco(){
   const today = new Date(); today.setHours(0,0,0,0);
   const all = Object.values(sessioniState).concat(prenAreaClienti).filter(s=>{
     if(search && !(s.cliente||'').toLowerCase().includes(search)) return false;
-    if(fPresenza && s.presenza !== fPresenza) return false;
+    if(fPresenza && presenzaVisualizzata(s) !== fPresenza) return false;
     return true;
   });
   const upcoming = all.filter(s=>{ const d = parseDate(s.data); return d && d >= today; })
@@ -2568,6 +2585,28 @@ function clientsByStatoInMonth(stato, monthKey){
     return monthKeyFromDate(dt)===monthKey;
   });
 }
+function fineMeseDi(monthKey){
+  const [y, m] = monthKey.split('-').map(Number);
+  return new Date(y, m, 0, 23, 59, 59, 999);  // giorno 0 del mese dopo = ultimo giorno del mese
+}
+/* Il totale non è un numero fisso: è quante clienti avevamo a fine di quel mese.
+   Conta chi era già iniziata entro quella data e non era ancora uscita (abbandono
+   o non rinnovo) con una data di uscita registrata entro quella data. Chi non ha
+   una data di inizio o di uscita registrata viene comunque contato, per non far
+   sembrare vuoti dei mesi vecchi solo perché manca il dato. */
+function totaleClientiAlMese(monthKey){
+  const fineMese = fineMeseDi(monthKey);
+  const pool = [...RAW.gnocca, ...RAW.disattivate];
+  return pool.filter(x=>{
+    const inizio = parseDate(x.inizio);
+    if(inizio && inizio > fineMese) return false;
+    if(x.stato==='ABBANDONO' || x.stato==='NON RINNOVO'){
+      const uscita = statusEventDate(x);
+      if(uscita && uscita <= fineMese) return false;
+    }
+    return true;
+  }).length;
+}
 const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'Attive', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandono', 'SPARITA':'Sparite', 'NON RINNOVO':'Non rinnovo'};
 const KPI_MONTHLY_FILTERS = ['ABBANDONO', 'NON RINNOVO'];
 function riepilogoDetailLabel(filter){
@@ -2714,7 +2753,7 @@ function renderRiepilogoGlobale(){
   const monthKey = monthKeyFromDate(dashboardMonthDate);
   const monthSub = dashboardMonthDate.toLocaleDateString('it-IT', {month:'short', year:'numeric'});
 
-  const totaleClienti = g.length;
+  const totaleClienti = totaleClientiAlMese(monthKey);
   const inPercorso = g.filter(x=>x.stato==='IN PERCORSO').length;
   const congelate = g.filter(x=>x.stato==='SOSPESA').length;
   const abbandonateMese = clientsByStatoInMonth('ABBANDONO', monthKey).length;
