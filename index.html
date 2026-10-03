@@ -2589,12 +2589,16 @@ function fineMeseDi(monthKey){
   const [y, m] = monthKey.split('-').map(Number);
   return new Date(y, m, 0, 23, 59, 59, 999);  // giorno 0 del mese dopo = ultimo giorno del mese
 }
-/* Il totale non è un numero fisso: è quante clienti avevamo a fine di quel mese.
-   Conta chi era già iniziata entro quella data e non era ancora uscita (abbandono
-   o non rinnovo) con una data di uscita registrata entro quella data. Chi non ha
-   una data di inizio o di uscita registrata viene comunque contato, per non far
-   sembrare vuoti dei mesi vecchi solo perché manca il dato. */
-function totaleClientiAlMese(monthKey){
+/* Per il mese corrente il totale è la verità di oggi: le righe che ci sono
+   davvero in Gnocca adesso, senza ricostruzioni — le stesse che vedi aprendo
+   il dettaglio. Per i mesi passati si ricostruisce chi era già iniziata entro
+   quella data e non era ancora uscita (abbandono o non rinnovo) a quella
+   data. Chi è uscito ma non ha una data di uscita registrata (abbandoni
+   vecchi, da prima che tracciassimo la data) NON viene contato in nessun
+   mese passato: è sicuramente andata via, anche se non sappiamo quando —
+   contarla gonfierebbe il totale rispetto a quello che si vede nel dettaglio. */
+function clientiAlMese(monthKey){
+  if(monthKey === monthKeyFromDate(new Date())) return RAW.gnocca;
   const fineMese = fineMeseDi(monthKey);
   const pool = [...RAW.gnocca, ...RAW.disattivate];
   return pool.filter(x=>{
@@ -2602,10 +2606,13 @@ function totaleClientiAlMese(monthKey){
     if(inizio && inizio > fineMese) return false;
     if(x.stato==='ABBANDONO' || x.stato==='NON RINNOVO'){
       const uscita = statusEventDate(x);
-      if(uscita && uscita <= fineMese) return false;
+      if(!uscita || uscita <= fineMese) return false;
     }
     return true;
-  }).length;
+  });
+}
+function totaleClientiAlMese(monthKey){
+  return clientiAlMese(monthKey).length;
 }
 const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'Attive', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandono', 'SPARITA':'Sparite', 'NON RINNOVO':'Non rinnovo'};
 const KPI_MONTHLY_FILTERS = ['ABBANDONO', 'NON RINNOVO'];
@@ -2639,9 +2646,8 @@ function computeCardClients(filter){
   if(filter==='ABBANDONO' || filter==='NON RINNOVO'){
     return clientsByStatoInMonth(filter, monthKeyFromDate(dashboardMonthDate));
   }
-  const g = RAW.gnocca;
-  if(filter==='') return g;
-  return g.filter(x=>x.stato===filter);
+  if(filter==='') return clientiAlMese(monthKeyFromDate(dashboardMonthDate));
+  return RAW.gnocca.filter(x=>x.stato===filter);
 }
 function riepilogoRowHtml(d, extra, gg){
   return `<div class="riepilogo-detail-row">
