@@ -2614,7 +2614,7 @@ function clientiAlMese(monthKey){
 function totaleClientiAlMese(monthKey){
   return clientiAlMese(monthKey).length;
 }
-const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'Attive', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandono', 'SPARITA':'Sparite', 'NON RINNOVO':'Non rinnovo'};
+const KPI_LABELS = {'':'Clienti totali', 'IN PERCORSO':'Attive', 'SOSPESA':'Congelate', 'ABBANDONO':'Abbandono', 'SPARITA':'Sparite', 'MAI INIZIATO':'Mai iniziato', 'NON RINNOVO':'Non rinnovo'};
 const KPI_MONTHLY_FILTERS = ['ABBANDONO', 'NON RINNOVO'];
 function riepilogoDetailLabel(filter){
   const base = KPI_LABELS[filter] ?? '';
@@ -2764,6 +2764,7 @@ function renderRiepilogoGlobale(){
   const congelate = g.filter(x=>x.stato==='SOSPESA').length;
   const abbandonateMese = clientsByStatoInMonth('ABBANDONO', monthKey).length;
   const sparite = g.filter(x=>x.stato==='SPARITA').length;
+  const maiIniziato = g.filter(x=>x.stato==='MAI INIZIATO').length;
   const nonRinnovoMese = clientsByStatoInMonth('NON RINNOVO', monthKey).length;
 
   const heroCard = {label:'Clienti totali', value: totaleClienti, icon:'fa-users', filter:'', grad:'linear-gradient(150deg,#ef2f6e,#a3134f)', labelColor:'#ffffff', valueColor:'#ffffff', border:'none'};
@@ -2773,6 +2774,7 @@ function renderRiepilogoGlobale(){
     {label:'Attive', value: inPercorso, icon:'fa-user-check', filter:'IN PERCORSO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Congelate', value: congelate, icon:'fa-snowflake', filter:'SOSPESA', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Sparite', value: sparite, icon:'fa-ghost', filter:'SPARITA', grad:secGrad, color:'#18181a', border:secBorder},
+    {label:'Mai iniziato', value: maiIniziato, icon:'fa-hourglass-half', filter:'MAI INIZIATO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Abbandono', value: abbandonateMese, sub: monthSub, icon:'fa-user-slash', filter:'ABBANDONO', grad:secGrad, color:'#18181a', border:secBorder},
     {label:'Non rinnovo', value: nonRinnovoMese, sub: monthSub, icon:'fa-calendar-xmark', filter:'NON RINNOVO', grad:secGrad, color:'#18181a', border:secBorder},
   ];
